@@ -1,0 +1,17 @@
+.git
+.gitignore
+.DS_Store
+.tools/
+node_modules/
+public/
+scratch/
+server/
+src/
+data/*.tmp
+*.log
+
+!dist/
+!dist/**
+!app.yaml
+!package.json
+!pnpm-lock.yaml

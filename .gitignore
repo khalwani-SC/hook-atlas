@@ -1,0 +1,8 @@
+.DS_Store
+node_modules/
+dist/
+.tools/
+scratch/
+*.log
+data/*.tmp
+*.local

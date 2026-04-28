@@ -1,0 +1,22 @@
+runtime: nodejs22
+service: default
+
+handlers:
+  - url: /assets
+    static_dir: dist/assets
+    secure: always
+    http_headers:
+      Cache-Control: public, max-age=31536000, immutable
+
+  - url: /media
+    static_dir: dist/media
+    secure: always
+    http_headers:
+      Cache-Control: public, max-age=86400
+
+  - url: /.*
+    static_files: dist/index.html
+    upload: dist/index.html
+    secure: always
+    http_headers:
+      Cache-Control: no-cache
