@@ -1,6 +1,6 @@
 # Hook Atlas
 
-A static React/Vite Hook Atlas for reviewing, mapping, and presenting short-form creative hooks.
+A static React/Vite Hook Atlas for reviewing first-frame ad examples, mapping them to hook patterns, and building sharper short-form openings.
 
 ## Local Preview
 

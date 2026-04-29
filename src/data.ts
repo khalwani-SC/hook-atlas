@@ -84,6 +84,198 @@ type HookSeed = Pick<
 > &
   Partial<Pick<Hook, "secondaryPattern" | "featured">>;
 
+type HookEditorial = Partial<
+  Pick<
+    Hook,
+    | "description"
+    | "example"
+    | "caption"
+    | "whatItIs"
+    | "whenToUse"
+    | "whenNotToUse"
+    | "shootingSteps"
+    | "variations"
+    | "verticalExamples"
+  >
+>;
+
+function verticalExample(
+  verticalName: string,
+  script: string,
+  visualDirection: string,
+  format: VerticalExample["format"] = "ugc",
+): VerticalExample {
+  const profile = verticalProfiles.find((item) => item.name.toLowerCase() === verticalName.toLowerCase());
+  return {
+    verticalId: profile?.id ?? verticalName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    verticalName,
+    verticalColor: profile?.color ?? "#111111",
+    script,
+    visualDirection,
+    format,
+  };
+}
+
+const hookEditorial: Record<string, HookEditorial> = {
+  "curiosity-gap": {
+    description: "Works because it opens a missing piece the brain wants to close before it scrolls away.",
+    example: "One mistake is killing your results.",
+    caption: "One mistake is killing your results.",
+    whatItIs: "Lead with the missing piece, not the explanation. The viewer stays because the answer feels close.",
+    whenToUse: ["You have a sharp reveal.", "The proof lands fast.", "The audience is still cold."],
+    whenNotToUse: ["The payoff is weak.", "The answer is generic.", "The setup feels manipulative."],
+    shootingSteps: ["Open on the gap.", "Hold tension for a beat.", "Resolve with proof."],
+    variations: [
+      { name: "Soft reveal", description: "Lower drama, stronger credibility." },
+      { name: "Fast reveal", description: "Answer comes almost immediately." },
+      { name: "Visual reveal", description: "Strange image before explanation." },
+    ],
+    verticalExamples: [
+      verticalExample("Beauty", "The one skin habit making your makeup split.", "Open on a close-up of the texture problem, then reveal the habit causing it."),
+      verticalExample("E-Commerce", "The checkout fix that lifted conversion overnight.", "Show the checkout screen first, then highlight the tiny change that changed behavior.", "screen"),
+      verticalExample("Travel", "The hotel trick that changes room choice fast.", "Start on two similar room options, then reveal the detail that makes one better.", "pov"),
+    ],
+  },
+  "before-you-scroll": {
+    description:
+      "Works because it names the viewer's next action and interrupts the autopilot scroll with a direct reason to pause.",
+    example: "Wait - this part matters.",
+    caption: "Wait - this part matters.",
+    whatItIs: "Speak to the viewer in the moment they are about to leave. Then earn the pause immediately.",
+    whenToUse: ["You have instant utility.", "The line can be proven fast.", "You need broad top-funnel reach."],
+    whenNotToUse: ["The value takes too long.", "The hook is too shouty.", "The next frame is weak."],
+    shootingSteps: ["Directly interrupt scrolling.", "State the reason to stay.", "Move into proof."],
+    variations: [
+      { name: "Calm stop", description: "Useful, not dramatic." },
+      { name: "Urgent stop", description: "Stronger pace and stakes." },
+      { name: "Visual stop", description: "Gesture, zoom, or object leads." },
+    ],
+    verticalExamples: [
+      verticalExample("Retail", "Wait - do not buy that size yet.", "Creator holds two sizes and immediately shows the fit difference."),
+      verticalExample("Finance", "Wait - check this fee first.", "Open on a payment screen and circle the overlooked fee.", "screen"),
+      verticalExample("Real Estate", "Wait until you see the second room.", "Start at the doorway, pause the viewer, then reveal the room with the stronger payoff.", "pov"),
+    ],
+  },
+  "bold-claim": {
+    description:
+      "Works because a sharp opinion creates tension, but only if the proof arrives quickly enough to feel earned.",
+    example: "Most brands are wasting this budget.",
+    caption: "Most brands are wasting this budget.",
+    whatItIs: "Start with a confident claim that sounds risky to say, then back it up with a clean proof point.",
+    whenToUse: ["You have real evidence.", "The claim is specific.", "You want authority fast."],
+    whenNotToUse: ["The proof is soft.", "The claim is clickbait.", "The tone feels arrogant."],
+    shootingSteps: ["State the claim plainly.", "Show evidence immediately.", "Translate into action."],
+    variations: [
+      { name: "Data-led", description: "Claim then stat." },
+      { name: "Creator-led", description: "Opinion then example." },
+      { name: "Contrarian", description: "Challenge a default belief." },
+    ],
+    verticalExamples: [
+      verticalExample("E-Commerce", "Hashtags are not your growth plan anymore.", "Open on a creator pointing to a flat growth chart, then show the real lever.", "screen"),
+      verticalExample("Beauty", "Expensive does not mean better coverage.", "Compare two product swatches in one clean frame before explaining the difference."),
+      verticalExample("Gaming", "Higher graphics do not fix bad pacing.", "Open on gameplay side-by-side and pause on the moment the experience breaks.", "screen"),
+    ],
+  },
+  "proof-first": {
+    description: "Works because visible evidence reduces skepticism before the viewer has time to doubt the claim.",
+    example: "2.3M views from one simple change.",
+    caption: "2.3M views from one simple change.",
+    whatItIs: "Show the result first. Then explain the behavior, choice, or creative move that produced it.",
+    whenToUse: ["You have visible proof.", "The result is concrete.", "The audience is skeptical."],
+    whenNotToUse: ["The proof needs too much context.", "The result is vanity only.", "The source feels untrustworthy."],
+    shootingSteps: ["Open on the result.", "Name why it matters.", "Break down the cause."],
+    variations: [
+      { name: "Screenshot proof", description: "Show the metric before the explanation." },
+      { name: "Product proof", description: "Let the product result carry the first beat." },
+      { name: "Outcome montage", description: "Stack several proof points quickly." },
+    ],
+    verticalExamples: [
+      verticalExample("E-Commerce", "This bundle sold out in 48 hours.", "Open on the sold-out page or order count, then explain the offer structure.", "screen"),
+      verticalExample("Retail", "This bundle sold out in 48 hours.", "Show the product stack first, then cut to the stock or queue proof.", "product"),
+      verticalExample("Travel", "Same hotel, better room, lower rate.", "Show the booking comparison first, then explain the selection move.", "screen"),
+    ],
+  },
+  "text-first": {
+    description:
+      "Works because text can set the tension before the creator appears, especially when the first line is punchy and legible.",
+    example: "Stop posting at 9 AM.",
+    caption: "Stop posting at 9 AM.",
+    whatItIs: "Let typography carry the first beat, then bring in the face, screen, or product to validate it.",
+    whenToUse: ["The line is sharp.", "The video needs a cleaner open.", "Silent viewing matters."],
+    whenNotToUse: ["The text is too long.", "The background is noisy.", "The claim needs tone first."],
+    shootingSteps: ["Black or clean visual.", "Short line on screen.", "Cut into proof."],
+    variations: [
+      { name: "Black screen open", description: "Plain text creates the first beat." },
+      { name: "Freeze-frame label", description: "A paused visual gets the line." },
+      { name: "Overlay on motion", description: "The text rides a moving scene." },
+    ],
+    verticalExamples: [
+      verticalExample("Education", "Do not post before this signal.", "Open on clean text, then cut to the screen or creator proof.", "screen"),
+      verticalExample("E-Commerce", "Never lead with the discount alone.", "Put the line over a product or cart visual, then show the better offer frame.", "product"),
+      verticalExample("Finance", "Stop auto-renewing this tool.", "Use a clean screen-first opener, then reveal the subscription setting.", "screen"),
+    ],
+  },
+  "story-open": {
+    description: "Works because the viewer enters in the middle of action and wants context without losing the momentum.",
+    example: "So there I was, watching it blow up.",
+    caption: "So there I was, watching it blow up.",
+    whatItIs: "Drop us into the scene before the setup. Curiosity comes from catching up, not waiting for the intro.",
+    whenToUse: ["You have a vivid moment.", "The story resolves fast.", "Emotion matters to the lesson."],
+    whenNotToUse: ["The story rambles.", "Nothing happens early.", "The lesson arrives too late."],
+    shootingSteps: ["Open mid-scene.", "Anchor the tension.", "Reveal the lesson."],
+    variations: [
+      { name: "Personal scene", description: "The creator starts inside their own moment." },
+      { name: "Client scene", description: "The tension comes from someone else's outcome." },
+      { name: "Behind-the-scenes scene", description: "The viewer enters while the work is already happening." },
+    ],
+    verticalExamples: [
+      verticalExample("E-Commerce", "We thought the launch was dead.", "Open on the tense moment, then show what changed the result."),
+      verticalExample("Travel", "We almost missed the best part.", "Start inside the problem, then reveal the destination payoff.", "pov"),
+      verticalExample("Retail", "The product sold out while we were filming.", "Open on the filming setup, then cut to the sellout proof.", "studio"),
+    ],
+  },
+  "instant-value": {
+    description:
+      "Works because the viewer gets usefulness immediately, which earns attention without needing heavy persuasion.",
+    example: "Free tool: cut this task in half.",
+    caption: "Free tool: cut this task in half.",
+    whatItIs: "Give the answer first, then explain the context. The value is the hook.",
+    whenToUse: ["The tip is real.", "The utility is instant.", "The audience is solution-hunting."],
+    whenNotToUse: ["The tip is obvious.", "The value needs long teaching.", "The tool is too niche."],
+    shootingSteps: ["Open on utility.", "Show how fast it works.", "Add one key caveat."],
+    variations: [
+      { name: "Tool tip", description: "Lead with the resource." },
+      { name: "Checklist drop", description: "Give the steps immediately." },
+      { name: "Shortcut reveal", description: "Show the faster way before context." },
+    ],
+    verticalExamples: [
+      verticalExample("Education", "Remove background in two taps.", "Open on the tool result, then show the exact two actions.", "screen"),
+      verticalExample("Beauty", "Blend faster with this order.", "Show the finished blend first, then demonstrate the order quickly."),
+      verticalExample("Finance", "Check this fee before you pay.", "Open on the fee field, then show where to find it.", "screen"),
+    ],
+  },
+  "expectations-subvert": {
+    description:
+      "Works because it flips the viewer's default assumption and creates tension between what they expect and what you show next.",
+    example: "This should not have won. It did.",
+    caption: "This should not have won. It did.",
+    whatItIs: "State the opposite of the expected answer, then quickly explain the condition that made it true.",
+    whenToUse: ["You have a credible reversal.", "The contrast is clear.", "You want to spark debate."],
+    whenNotToUse: ["The reversal is fake.", "The nuance is missing.", "The proof arrives too late."],
+    shootingSteps: ["State the surprise.", "Show the result.", "Explain the condition."],
+    variations: [
+      { name: "Contrarian result", description: "The expected loser wins." },
+      { name: "Unexpected winner", description: "A weak-looking option outperforms." },
+      { name: "Rule-break that worked", description: "The normal advice gets reversed with proof." },
+    ],
+    verticalExamples: [
+      verticalExample("E-Commerce", "The ugly cut outperformed the polished edit.", "Open on both edits, then show the winning result.", "screen"),
+      verticalExample("Retail", "The smaller pack sold faster.", "Show both packs side by side before revealing the sales result.", "product"),
+      verticalExample("Gaming", "The simplest UI kept players longer.", "Show gameplay with the simple interface, then reveal the retention proof.", "screen"),
+    ],
+  },
+};
+
 const hookSeeds: HookSeed[] = [
   { id: "curiosity-gap", displayName: "The Gap", name: "The Curiosity Gap", category: "Curiosity", subcategory: "Information Void", pattern: "Intrigue", secondaryPattern: "Clarify", intent: "Curiosity", featured: true, difficulty: "Beginner", productionTier: "Found", example: "I found one thing that 99% of brands are doing wrong - and it's costing them thousands.", description: "The brain can't tolerate an unclosed information loop - it stays on the screen until the missing piece arrives." },
   { id: "countdown-tease", displayName: "The Countdown", name: "The Countdown Tease", category: "Curiosity", subcategory: "Numbered Reveal", pattern: "Intrigue", intent: "Curiosity", difficulty: "Beginner", productionTier: "UGC", example: "3 things they will not say out loud.", description: "Promise a specific count so the viewer mentally commits to finishing the list." },
@@ -1599,60 +1791,159 @@ export const hookGapSuggestions: HookGapSuggestion[] = [
   },
 ];
 
-function linkedExamples(seed: HookSeed, index: number): VerticalExample[] {
-  const chosen = [verticalProfiles[index % 10], verticalProfiles[(index + 3) % 10], verticalProfiles[(index + 7) % 10]];
-  return chosen.map((vertical, offset) => ({
-    verticalId: vertical.id,
-    verticalName: vertical.name,
-    verticalColor: vertical.color,
-    script: `${seed.example.replace(/\.$/, "")} for ${vertical.name.toLowerCase()}.`,
-    visualDirection: `${vertical.prompt}; ${offset === 0 ? "open tight and reveal context" : "cut quickly between proof and reaction"}.`,
-    format: offset === 1 ? "studio" : offset === 2 ? "screen" : "ugc",
-  }));
+const categoryScenarios: Record<HookCategory, VerticalExample[]> = {
+  Curiosity: [
+    verticalExample("Beauty", "The shade mismatch nobody notices until daylight.", "Open on a strange close-up, then reveal the product or habit causing the issue."),
+    verticalExample("E-Commerce", "The product detail that changes the purchase decision.", "Show the overlooked detail before explaining why it matters.", "product"),
+    verticalExample("Travel", "The room choice mistake you only spot after check-in.", "Start on two similar options, then reveal the hidden difference.", "pov"),
+  ],
+  Bold: [
+    verticalExample("E-Commerce", "Most brands are burying the reason people buy.", "Open with the claim over a product or dashboard, then show the proof.", "screen"),
+    verticalExample("Beauty", "Price is not the same thing as performance.", "Compare visible results before naming the product argument."),
+    verticalExample("Gaming", "Better visuals will not save a boring first minute.", "Cut between gameplay moments and pause on the friction point.", "screen"),
+  ],
+  Questions: [
+    verticalExample("Fashion", "Which version would you actually wear?", "Show two styling options in the first frame, then resolve the choice."),
+    verticalExample("Retail", "Are you buying the product or the problem it solves?", "Open with a direct question over the shelf or cart moment.", "product"),
+    verticalExample("Finance", "Would you notice this before paying?", "Use a screen-first question and circle the hidden decision point.", "screen"),
+  ],
+  Emotional: [
+    verticalExample("Beauty", "The moment you realize the routine finally worked.", "Start on the emotional reaction, then show the product or process behind it."),
+    verticalExample("Travel", "The place everyone said was not worth it.", "Open on the reveal moment, then build the emotional contrast.", "pov"),
+    verticalExample("Retail", "Everyone waited. One item disappeared first.", "Show the crowd, queue, or sellout proof before the product detail.", "studio"),
+  ],
+  Authority: [
+    verticalExample("E-Commerce", "The result came before the explanation.", "Open on the metric, order count, or review proof, then explain the driver.", "screen"),
+    verticalExample("Finance", "The card, dashboard, or receipt proves the claim.", "Show the physical or screen proof before the voiceover.", "screen"),
+    verticalExample("Retail", "The shelf proof tells the story faster than a claim.", "Open on stock, sellout, or product movement.", "product"),
+  ],
+  Visual: [
+    verticalExample("Fashion", "The camera move makes the outfit impossible to miss.", "Use motion, perspective, or framing as the first hook."),
+    verticalExample("E-Commerce", "The product enters frame before the claim does.", "Let the object movement create the stop, then add the line.", "product"),
+    verticalExample("Travel", "The viewer feels physically inside the place.", "Use a POV move through the scene before any explanation.", "pov"),
+  ],
+  Audio: [
+    verticalExample("Beauty", "The sound cue lands exactly when the reveal appears.", "Cut from quiet setup to a timed reveal with product or face."),
+    verticalExample("Retail", "The audio break makes the offer feel immediate.", "Use silence, snap, or beat drop as the first attention signal."),
+    verticalExample("Gaming", "The rhythm carries the gameplay reveal.", "Sync the first visual change to a sound shift.", "screen"),
+  ],
+  Editing: [
+    verticalExample("E-Commerce", "The edit shows the before, action, and result before the viewer can drift.", "Use a fast proof sequence instead of a spoken intro.", "product"),
+    verticalExample("Beauty", "The cut makes the transformation feel instant.", "Move from problem frame to payoff frame with a clean edit."),
+    verticalExample("Travel", "The sequence makes a place feel discovered.", "Use motion and cutaways to reveal the location in steps.", "pov"),
+  ],
+  Text: [
+    verticalExample("Education", "The first line does the stopping before the creator appears.", "Use a clean text frame, then cut into proof.", "screen"),
+    verticalExample("Retail", "The offer line is clear before the product detail.", "Put the copy over a simple product or cart frame.", "product"),
+    verticalExample("Finance", "The warning line is visible before the explanation.", "Lead with a short screen-safe sentence, then show the setting.", "screen"),
+  ],
+  Story: [
+    verticalExample("Travel", "We almost missed the best part.", "Drop into the scene mid-moment, then reveal the context.", "pov"),
+    verticalExample("E-Commerce", "The launch looked quiet until one thing changed.", "Open inside the tension, then cut to the outcome proof.", "screen"),
+    verticalExample("Retail", "The product sold out while the camera was still rolling.", "Start with the live moment, not the setup.", "ugc"),
+  ],
+  Interrupts: [
+    verticalExample("E-Commerce", "The object breaks the frame before the claim appears.", "Use a sudden insert, scale change, or impossible visual.", "product"),
+    verticalExample("Fashion", "The expected outfit reveal gets interrupted.", "Break the try-on rhythm with a surprise movement or object."),
+    verticalExample("Gaming", "The normal interface glitches into the point.", "Use a visual error or unexpected UI move before the message.", "screen"),
+  ],
+  Education: [
+    verticalExample("Beauty", "Blend faster with this order.", "Open on the useful result, then show the exact steps."),
+    verticalExample("Finance", "Check this before you pay.", "Show the screen or receipt first, then teach the decision.", "screen"),
+    verticalExample("Travel", "Save this before booking the room.", "Open with the useful rule, then show the booking context.", "pov"),
+  ],
+};
+
+const patternShootingSteps: Record<HookPattern, string[]> = {
+  Interrupt: ["Break the expected first frame.", "Name or show why the interruption matters.", "Move quickly into proof or payoff."],
+  Intrigue: ["Open the loop immediately.", "Let the viewer feel the missing piece.", "Resolve with proof before the tension feels fake."],
+  Clarify: ["Show the value clearly.", "Remove extra setup from the first beat.", "Translate the point into a next action."],
+  Reward: ["Lead with the payoff or proof.", "Hold the result long enough to register.", "Explain the move that created it."],
+};
+
+function buildHookDescription(seed: HookSeed) {
+  return `${seed.description.replace(/\.$/, "")}. The opening beat gives the viewer a clear reason to keep watching.`;
 }
 
-export const hooks: Hook[] = hookSeeds.map((seed, index) => ({
-  ...seed,
-  categoryLabel: categoryMeta[seed.category].label,
-  caption: seed.example,
-  whatItIs: seed.description,
-  whenToUse: [
-    `Use when the viewer already cares about ${categoryMeta[seed.category].label.toLowerCase()}.`,
-    "Use when the payoff can arrive within the next 5 to 12 seconds.",
-    "Use when the first frame can clearly support the promise.",
-  ],
-  whenNotToUse: [
-    "Avoid when the claim is generic or cannot be proven.",
-    "Avoid when the setup takes longer than the payoff.",
-    "Avoid repeating the same structure across every post.",
-  ],
-  shootingSteps: [
-    "Open on the strongest frame or line.",
-    "Hold the first beat long enough to register.",
-    "Move quickly into proof, context, or payoff.",
-  ],
-  variations: [
-    { name: "Direct Line", description: `Say the simplest version of: ${seed.example}` },
-    { name: "Visual First", description: `Show the proof visually before naming ${seed.displayName}.` },
-    { name: "Soft Sell", description: "Keep the same structure but lower the intensity for warmer audiences." },
-  ],
-  related: hookSeeds
-    .filter((other) => other.id !== seed.id && (other.pattern === seed.pattern || other.category === seed.category))
-    .slice(0, 4)
-    .map((other) => other.id),
-  tags: Array.from(new Set([
-    seed.pattern.toLowerCase(),
-    seed.category.toLowerCase(),
-    seed.subcategory.toLowerCase().replace(/\s+/g, "-"),
-    seed.intent.toLowerCase(),
-    seed.productionTier.toLowerCase(),
-  ])),
-  effectiveness: seed.featured ? 5 : index < 18 ? 5 : index < 36 ? 4 : 3,
-  funnelFit: index % 5 === 0 ? ["TOF", "MOF"] : index % 3 === 0 ? ["MOF", "BOF"] : ["TOF"],
-  mediaTier: "placeholder",
-  palette: palettes[index % palettes.length],
-  verticalExamples: linkedExamples(seed, index),
-}));
+function buildWhatItIs(seed: HookSeed) {
+  return `A ${seed.subcategory.toLowerCase()} opening that uses ${seed.pattern.toLowerCase()} to make the first frame or line carry the idea.`;
+}
+
+function buildWhenToUse(seed: HookSeed) {
+  const patternUse: Record<HookPattern, string> = {
+    Interrupt: "The feed pattern needs to be broken instantly.",
+    Intrigue: "The answer can arrive soon after the question.",
+    Clarify: "The value can be understood in one glance.",
+    Reward: "The payoff is more interesting than the setup.",
+  };
+  const intentUse: Record<Intent, string> = {
+    Curiosity: "The audience needs a reason to close the loop.",
+    Authority: "You have evidence strong enough to show early.",
+    Story: "There is a human moment behind the message.",
+    Urgency: "The viewer needs a reason to act now.",
+    Education: "The tip is useful before it is explained.",
+    Contrast: "The difference can be seen or felt quickly.",
+    Exclusive: "The hook gives access to something that feels hidden.",
+  };
+  return [
+    patternUse[seed.pattern],
+    intentUse[seed.intent],
+    `The first frame can clearly express ${seed.subcategory.toLowerCase()}.`,
+  ];
+}
+
+function buildWhenNotToUse(seed: HookSeed) {
+  return [
+    "The opening needs too much context before it makes sense.",
+    "The proof is not visible or specific enough.",
+    `The ${seed.subcategory.toLowerCase()} angle feels forced for the audience.`,
+  ];
+}
+
+function buildVariations(seed: HookSeed): Hook["variations"] {
+  return [
+    { name: "Clean version", description: "Run the mechanic with minimal drama and fast proof." },
+    { name: "Visual version", description: "Let the first frame do the work before the line appears." },
+    { name: "Creator version", description: "Use face, voice, or gesture to make the mechanic feel native." },
+  ];
+}
+
+function linkedExamples(seed: HookSeed): VerticalExample[] {
+  return hookEditorial[seed.id]?.verticalExamples ?? categoryScenarios[seed.category];
+}
+
+export const hooks: Hook[] = hookSeeds.map((seed, index) => {
+  const editorial = hookEditorial[seed.id] ?? {};
+  const example = editorial.example ?? seed.example;
+  return {
+    ...seed,
+    description: editorial.description ?? buildHookDescription(seed),
+    example,
+    categoryLabel: categoryMeta[seed.category].label,
+    caption: editorial.caption ?? example,
+    whatItIs: editorial.whatItIs ?? buildWhatItIs(seed),
+    whenToUse: editorial.whenToUse ?? buildWhenToUse(seed),
+    whenNotToUse: editorial.whenNotToUse ?? buildWhenNotToUse(seed),
+    shootingSteps: editorial.shootingSteps ?? patternShootingSteps[seed.pattern],
+    variations: editorial.variations ?? buildVariations(seed),
+    related: hookSeeds
+      .filter((other) => other.id !== seed.id && (other.pattern === seed.pattern || other.category === seed.category))
+      .slice(0, 4)
+      .map((other) => other.id),
+    tags: Array.from(new Set([
+      seed.pattern.toLowerCase(),
+      seed.category.toLowerCase(),
+      seed.subcategory.toLowerCase().replace(/\s+/g, "-"),
+      seed.intent.toLowerCase(),
+      seed.productionTier.toLowerCase(),
+    ])),
+    effectiveness: seed.featured ? 5 : index < 18 ? 5 : index < 36 ? 4 : 3,
+    funnelFit: index % 5 === 0 ? ["TOF", "MOF"] : index % 3 === 0 ? ["MOF", "BOF"] : ["TOF"],
+    mediaTier: "placeholder",
+    palette: palettes[index % palettes.length],
+    verticalExamples: linkedExamples(seed),
+  };
+});
 
 const unassignedIds = new Set([1, 3, 5, 21, 26, 27, 32, 40, 44]);
 const inspirationTags = ["ugc", "reel", "local", "creator", "demo", "caption", "reaction", "proof", "story", "voice"];

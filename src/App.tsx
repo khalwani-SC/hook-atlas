@@ -987,7 +987,7 @@ function TopNav({
             <Search size={16} />
             <input
               autoFocus
-              placeholder="Search hooks, techniques, tags..."
+              placeholder="Search by hook, intent, pattern, or category."
               value={searchQuery}
               onChange={(event) => onSearchChange(event.target.value)}
             />
@@ -1014,13 +1014,13 @@ function TopNav({
           {menuOpen && (
             <div className="menu-popover" role="menu">
               <button type="button" role="menuitem" onClick={onBrowse}>
-                <Grid2X2 size={16} /> Browse all hooks
+                <Grid2X2 size={16} /> Browse hooks
               </button>
               <button type="button" role="menuitem" onClick={onRandom}>
                 <Sparkles size={16} /> Random hook
               </button>
               <button type="button" role="menuitem" onClick={onFeed}>
-                <Lightbulb size={16} /> Inspiration feed
+                <Lightbulb size={16} /> Review queue
               </button>
               <button type="button" role="menuitem" onClick={onBuilder}>
                 <Clipboard size={16} /> Ad Builder
@@ -1101,16 +1101,21 @@ function AtlasGallery({
             <span />
           </div>
           <h1>
-            Every Hook.
-            <em>Catalogued</em> & Ready.
+            Hook Atlas.
+            <em>First-frame</em> patterns.
           </h1>
-          <p>A visual gallery of the patterns that earn attention in under two seconds - browse, watch, copy what works.</p>
+          <p className="hero-descriptor">44 hook patterns for the first second - built for short-form ads.</p>
+          <p>Find the hook, understand the mechanic, then make it native to your ad.</p>
           <button className="pill-cta" type="button" onClick={onExplore}>
             Explore the collection <ArrowDown size={15} />
           </button>
         </section>
 
         <section className="filters" id="collection">
+          <div className="gallery-helper">
+            <p>Browse hooks by the tension they create, not just by what they are called.</p>
+            <span>Use filters to narrow by intent, funnel role, or production reality.</span>
+          </div>
           <FilterRow label="Pattern">
             <FilterButton active={pattern === "All"} onClick={() => setPattern("All")}>
               All
@@ -1142,6 +1147,7 @@ function AtlasGallery({
             <span>
               {filteredHooks.length} hooks · {validatedExampleCount} validated sources on {validatedHookCount} hooks
             </span>
+            <small>Open a hook to see when it works, when it flops, and how to make it native.</small>
             <label>
               Sort
               <select value={sort} onChange={(event: ChangeEvent<HTMLSelectElement>) => setSort(event.target.value as SortMode)}>
@@ -1164,7 +1170,7 @@ function AtlasGallery({
         ) : (
           <EmptyState
             title="No hooks match"
-            body="Clear search or loosen the filters to bring the library back."
+            body="Clear search or loosen the filters to bring the hook patterns back."
             actionLabel="Reset view"
             onAction={() => {
               setPattern("All");
@@ -1441,17 +1447,17 @@ function HookModal({
           <p className="lead-copy">{hook.description}</p>
 
           <div className="quote-block">
-            <span>On-screen text</span>
+            <span>Sample opening line</span>
             <strong>{hook.caption}</strong>
           </div>
 
           <InfoSection title="What it is">{hook.whatItIs}</InfoSection>
           <InfoList title="When to use" items={hook.whenToUse} />
-          <InfoList title="When it flops" items={hook.whenNotToUse} />
+          <InfoList title="When not to use" items={hook.whenNotToUse} />
 
           <div className="example-box">
             <div>
-              <h4>Example</h4>
+              <h4>Example opening</h4>
               <button type="button" onClick={() => copyText("script", hook.example)}>
                 {copied === "script" ? "Copied" : "Copy"}
               </button>
@@ -1461,7 +1467,7 @@ function HookModal({
 
           <section className="detail-panel">
             <div className="section-title">
-              <h4>Ad Examples by Vertical</h4>
+              <h4>How it plays by vertical</h4>
               <span>{hook.verticalExamples.length} verticals</span>
             </div>
             <div className="vertical-tabs">
@@ -1489,7 +1495,7 @@ function HookModal({
 
           <section className="detail-panel">
             <div className="section-title">
-              <h4>Named variations</h4>
+              <h4>Ways to run it</h4>
               <span>{hook.variations.length} subtypes</span>
             </div>
             <div className="variation-grid">
@@ -1504,7 +1510,7 @@ function HookModal({
 
           <section className="detail-panel">
             <div className="section-title">
-              <h4>Related hooks</h4>
+              <h4>Try next</h4>
               <span>{related.length} matches</span>
             </div>
             <div className="related-grid">
@@ -1531,7 +1537,7 @@ function HookModal({
 
           <section className="detail-panel">
             <div className="section-title">
-              <h4>Inspiration clips</h4>
+              <h4>Validated examples</h4>
               <span>{clips.length || "No"} validated</span>
             </div>
             <div className="clip-row">
@@ -1547,7 +1553,7 @@ function HookModal({
                   </div>
                 ))
               ) : (
-                <p className="lead-copy">No validated creative is attached yet. Approve a source in Inspiration to populate this hook.</p>
+                <p className="lead-copy">No validated example yet. Route a real ad here once the first frame clearly matches the hook.</p>
               )}
             </div>
           </section>
@@ -1671,15 +1677,15 @@ function InspirationFeed({
         <button type="button" onClick={onBack}>
           <ArrowLeft size={16} /> The Atlas
         </button>
-        <span>Inspiration</span>
+        <span>Review queue</span>
       </header>
       <section className="feed-hero">
-        <p className="small-kicker">Raw feed</p>
+        <p className="small-kicker">Opening beat validation</p>
         <h1>
-          Review queue.
-          <span>Validate the first 3 seconds.</span>
+          Review queue:
+          <span>validate the opening beat.</span>
         </h1>
-        <p>Videos that caught our eye. Open a card, validate the first three seconds, and save the exact hook routing so it stays mapped.</p>
+        <p>Review the first frame, first line, and first movement. Then route the ad to the hook it actually earns.</p>
         <div className="queue-stats" aria-label="Review queue progress">
           <div>
             <strong>{validatedCount}</strong>
@@ -2000,7 +2006,7 @@ function VideoPreview({
             </div>
             <div className="ai-draft-grid">
               <div>
-                <span>Suggested hook</span>
+                <span>Suggested route</span>
                 <strong>{selectedHook?.displayName ?? "Needs human route"}</strong>
               </div>
               <div>
@@ -2016,7 +2022,7 @@ function VideoPreview({
                 </strong>
               </div>
               <div>
-                <span>System confidence</span>
+                <span>Match confidence</span>
                 <strong>{confidence}</strong>
               </div>
             </div>
@@ -2237,7 +2243,7 @@ function VideoPreview({
 
               <section className="first-three-panel">
                 <div className="validation-section-head">
-                  <h3>First 3 Seconds</h3>
+                  <h3>Opening Beat</h3>
                   <span>edit draft text</span>
                 </div>
                 <div className="evidence-grid">
@@ -2328,7 +2334,7 @@ function getFirstThreeSecondAnalysis(match: (typeof mediaHookMatrix)[number]): F
     return {
       firstFrame,
       firstTextOrAudio: firstSignal,
-      attentionMechanic: "Not enough first-three-second evidence for a hook assignment.",
+      attentionMechanic: "Not enough opening-beat evidence for a hook assignment.",
       matchingReason: "This source is useful, but assigning it to a hook would mislabel the opening beat until the first line/frame is reviewed.",
     };
   }
@@ -2392,11 +2398,11 @@ function AdBuilder({
           <span>ha</span>
         </div>
         <div>
-          <h1>Hook Ad Builder</h1>
-          <p>44 hooks · intent to blueprint to ad</p>
+          <h1>Ad Builder</h1>
+          <p>Pick a hook. Build the opening. Turn intent into execution.</p>
         </div>
         <button type="button" onClick={onBack}>
-          <ArrowLeft size={16} /> Back to gallery
+          <ArrowLeft size={16} /> Back to Atlas
         </button>
       </header>
 
@@ -2426,7 +2432,7 @@ function AdBuilder({
               </FilterButton>
             ))}
           </BuilderGroup>
-          <p>Intent picks the creative lane: camera, lighting, script spine, and CTA style. Pick a lane, then a hook.</p>
+          <p>Intent shapes the energy, script spine, camera logic, and CTA tone.</p>
         </aside>
 
         <section className="builder-hooks">
@@ -2482,8 +2488,8 @@ function AdBuilder({
             ))}
             {!filtered.length && (
               <EmptyState
-                title="No blueprint here"
-                body="This combination has no seed hook yet. Clear one filter or add a matching hook in the local data file."
+                title="No opening here"
+                body="Clear one filter or add a hook that actually fits this intent, funnel, and production reality."
               />
             )}
           </div>
@@ -2491,7 +2497,7 @@ function AdBuilder({
 
         <aside className="brief-panel">
           <div className="brief-top">
-            <h2>Ad Builder (AI)</h2>
+            <h2>Ad Builder</h2>
             <button className="dark-button" type="button" onClick={exportBrief} disabled={!selectedHook}>
               Export Ad Brief <Download size={16} />
             </button>
@@ -2506,7 +2512,7 @@ function AdBuilder({
               onOpenHook={onOpenHook}
             />
           ) : (
-            <EmptyState title="No brief selected" body="Choose a different filter mix to generate a brief." />
+            <EmptyState title="No brief selected" body="Choose a filter mix that has a real hook behind it." />
           )}
         </aside>
       </div>
@@ -2570,14 +2576,14 @@ function BuilderBrief({
         <h3>{hook.name}</h3>
         <p className="brief-line">"{hook.example}"</p>
         <p>
-          <strong>Why it works:</strong> {hook.description}
+          <strong>Why it pulls attention:</strong> {hook.description}
         </p>
       </section>
 
       <section className="brief-card evidence-card">
         <div className="brief-section-head">
-          <h4>Creative Evidence</h4>
-          <span>{evidence.length ? `${evidence.length} linked sources` : "no validated source"}</span>
+          <h4>Opening Beat Evidence</h4>
+          <span>{evidence.length ? `${evidence.length} linked examples` : "no validated example"}</span>
         </div>
         {heroEvidence ? (
           <div className="evidence-brief">
@@ -2607,7 +2613,7 @@ function BuilderBrief({
             </div>
           </div>
         ) : (
-          <p className="lead-copy">No validated source is attached to this hook yet. Use Inspiration to approve a first-three-second match.</p>
+          <p className="lead-copy">No validated example yet. Route a real ad here once the first frame clearly matches the hook.</p>
         )}
       </section>
 
@@ -2643,7 +2649,7 @@ function BuilderBrief({
             <dd>{blueprint.expression}</dd>
           </div>
           <div>
-            <dt>Text Overlay:</dt>
+            <dt>Sample overlay:</dt>
             <dd>{blueprint.textOverlay}</dd>
           </div>
         </dl>
@@ -2651,7 +2657,7 @@ function BuilderBrief({
 
       <section className="brief-card script-card">
         <div className="brief-section-head">
-          <h4>Script</h4>
+          <h4>Opening Script</h4>
           <button type="button" onClick={() => copyText(scriptText, "script")}>
             {copiedScript ? "Copied" : "Copy"}
           </button>
@@ -2680,7 +2686,7 @@ function BuilderBrief({
 
       <section className="brief-card testing-card">
         <div className="brief-section-head">
-          <h4>Testing Plan</h4>
+          <h4>Opening Test Plan</h4>
           <span>{heroEvidence ? heroEvidence.status : "template"}</span>
         </div>
         <ul className="testing-list">
@@ -2692,7 +2698,7 @@ function BuilderBrief({
 
       <section className="brief-card thumbnail-card">
         <div className="brief-section-head">
-          <h4>AI Thumbnail</h4>
+          <h4>First-Frame Thumbnail</h4>
           <div className="mode-toggle" aria-label="Thumbnail style">
             {thumbnailModes.map((mode) => (
               <button
@@ -2871,7 +2877,7 @@ Attention mechanic: ${evidence.firstThree.attentionMechanic}
 `
     : "";
   return `Hook: ${hook.name}
-Opener line: "${hook.example}"
+Sample opening line: "${hook.example}"
 ${evidenceBlock}
 
 Tone: ${blueprint.tone}
@@ -2879,12 +2885,11 @@ Pacing: ${blueprint.pacing}
 Text overlay: "${blueprint.textOverlay}"
 
 Structure:
-  → hook
-  → open loop
-  → build tension
-  → partial reveal
+  → opening beat
+  → mechanic
+  → proof
   → payoff
-  → soft cta
+  → CTA
 
 CTA style: ${blueprint.ctaStyle}`;
 }
@@ -2928,14 +2933,14 @@ function buildBrief(
 Intent: ${intent}
 Funnel: ${funnel ?? hook.funnelFit.join(", ")}
 Production: ${production ?? hook.productionTier}
-Evidence Source: ${evidence ? `${evidence.video.title} (${evidence.status})` : "No validated source attached"}
+Evidence Source: ${evidence ? `${evidence.video.title} (${evidence.status})` : "No validated example attached"}
 
-## First 3 Second Evidence
+## Opening Beat Evidence
 ${evidence ? `- First frame: ${evidence.firstThree.firstFrame}
 - Text/audio: ${evidence.firstThree.firstTextOrAudio}
 - Movement: ${evidence.firstThree.firstMovement}
 - Mechanic: ${evidence.firstThree.attentionMechanic}
-- Why it matches: ${evidence.firstThree.matchingReason}` : "- Needs human validation in Inspiration."}
+- Why it matches: ${evidence.firstThree.matchingReason}` : "- Needs human validation in the review queue."}
 
 ## Visual Blueprint
 - Camera: ${blueprint.camera}
@@ -2945,24 +2950,24 @@ ${evidence ? `- First frame: ${evidence.firstThree.firstFrame}
 - Environment: ${blueprint.environment}
 - Motion: ${blueprint.motion}
 - Expression: ${blueprint.expression}
-- Text Overlay: ${blueprint.textOverlay}
+- Sample overlay: ${blueprint.textOverlay}
 
 ## Script
 ${scriptText}
 
-## Why It Works
+## Why It Pulls Attention
 ${hook.description}
 
 ## Shot Breakdown
 ${shots.map((shot, index) => `${index + 1}. ${shot.title}\n   ${shot.setup}\n   ${shot.action}`).join("\n")}
 
-## AI Thumbnail Prompt
+## First-Frame Thumbnail Prompt
 ${thumbnailPrompt}
 
 ## Testing Plan
 ${testingPlan.map((item) => `- ${item}`).join("\n")}
 
-## Vertical Rewrites
+## How It Plays By Vertical
 ${hook.verticalExamples.map((example) => `### ${example.verticalName}\n"${example.script}"\n${example.visualDirection}`).join("\n\n")}
 
 ## When To Use
@@ -2987,7 +2992,7 @@ function Footer() {
           <span>ha</span>
         </div>
         <strong>The Hook Atlas</strong>
-        <p>44 hooks · patterns for the first 2 seconds</p>
+        <p>Short-form hook patterns for sharper first frames.</p>
         <small>Left/right navigate · ESC close</small>
       </div>
     </footer>
