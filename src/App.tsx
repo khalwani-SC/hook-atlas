@@ -1097,24 +1097,39 @@ function AtlasGallery({
         <section className="hero">
           <div className="eyebrow">
             <span />
-            The Hook Atlas
+            Hook Atlas
             <span />
           </div>
+          <p className="hero-system-label">The First-Seconds Creative System</p>
           <h1>
-            Hook Atlas.
-            <em>First-frame</em> patterns.
+            Win the first seconds with a <em>system.</em>
           </h1>
-          <p className="hero-descriptor">44 hook patterns for the first second - built for short-form ads.</p>
-          <p>Find the hook, understand the mechanic, then make it native to your ad.</p>
-          <button className="pill-cta" type="button" onClick={onExplore}>
-            Explore the collection <ArrowDown size={15} />
-          </button>
+          <p className="hero-descriptor">Turn first-seconds intelligence into creative action.</p>
+          <p>
+            Hook Atlas helps teams understand hook types, choose stronger creative routes, and make better decisions on
+            what to build next.
+          </p>
+          <div className="hero-actions">
+            <button className="pill-cta" type="button" onClick={onExplore}>
+              Explore the Atlas <ArrowDown size={15} />
+            </button>
+            <button
+              className="secondary-cta"
+              type="button"
+              onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
+            >
+              See How It Works
+            </button>
+          </div>
+          <p className="hero-proof">Not a swipe file. Not another best-practice deck. A system for stronger starts.</p>
         </section>
+
+        <HomepageNarrative onExplore={onExplore} />
 
         <section className="filters" id="collection">
           <div className="gallery-helper">
-            <p>Browse hooks by the tension they create, not just by what they are called.</p>
-            <span>Use filters to narrow by intent, funnel role, or production reality.</span>
+            <p>Classify first-seconds routes by the decision they unlock.</p>
+            <span>Use filters to move from signal to hook route to next creative action.</span>
           </div>
           <FilterRow label="Pattern">
             <FilterButton active={pattern === "All"} onClick={() => setPattern("All")}>
@@ -1147,7 +1162,7 @@ function AtlasGallery({
             <span>
               {filteredHooks.length} hooks · {validatedExampleCount} validated sources on {validatedHookCount} hooks
             </span>
-            <small>Open a hook to see when it works, when it flops, and how to make it native.</small>
+            <small>Open a hook to see the logic, context, and creative direction behind the route.</small>
             <label>
               Sort
               <select value={sort} onChange={(event: ChangeEvent<HTMLSelectElement>) => setSort(event.target.value as SortMode)}>
@@ -1184,6 +1199,143 @@ function AtlasGallery({
         <Footer />
       </main>
     </>
+  );
+}
+
+const valueCards = [
+  {
+    title: "Translate insight into action",
+    body: "Turn creative observations into clearer hook directions.",
+  },
+  {
+    title: "Create a shared language",
+    body: "Give teams a more memorable way to discuss and teach hook strategy.",
+  },
+  {
+    title: "Organize hook patterns",
+    body: "Classify first-seconds approaches into structured, recognizable routes.",
+  },
+  {
+    title: "Ground inspiration in logic",
+    body: "Show examples as part of a system, not as random references.",
+  },
+  {
+    title: "Help teams plan what is next",
+    body: "Move from what happened to what should be tested next.",
+  },
+];
+
+function HomepageNarrative({ onExplore }: { onExplore: () => void }) {
+  return (
+    <section className="system-home" aria-label="Hook Atlas system overview">
+      <div className="intro-band">
+        <p>
+          Winning the first seconds should not depend on taste, scattered examples, or whoever happens to be in the
+          room. Hook Atlas brings structure to the decision.
+        </p>
+      </div>
+
+      <section className="strategy-section split">
+        <div>
+          <p className="small-kicker">What it is</p>
+          <h2>From diagnosis to direction</h2>
+        </div>
+        <div className="strategy-copy">
+          <p>
+            Hook Atlas is a first-seconds creative system designed to help teams move from insight to execution. It
+            translates performance signals and creative observations into clearer hook strategies, shared terminology,
+            and practical next-step recommendations.
+          </p>
+          <p>
+            It is built to make hook thinking more teachable, repeatable, and actionable, so teams can move beyond
+            "make the hook stronger" to a more useful question: <strong>which route should we take, and why?</strong>
+          </p>
+        </div>
+      </section>
+
+      <section className="strategy-section tension-section">
+        <p className="small-kicker">Why it matters</p>
+        <h2>Because "make the hook stronger" is not a strategy.</h2>
+        <p>
+          Teams are often told what needs to improve, but not how to improve it. They get examples without structure,
+          feedback without a framework, and best practices without a memorable method.
+        </p>
+        <p>
+          Hook Atlas closes that gap. It helps teams classify hook patterns, understand creative options, and turn
+          abstract advice into practical action.
+        </p>
+      </section>
+
+      <section className="strategy-section">
+        <div className="section-title">
+          <div>
+            <p className="small-kicker">What it does</p>
+            <h2>A system built for better creative decisions</h2>
+          </div>
+          <span>5 operating roles</span>
+        </div>
+        <div className="value-grid">
+          {valueCards.map((card, index) => (
+            <article key={card.title} className="value-card">
+              <span>{index + 1}</span>
+              <h3>{card.title}</h3>
+              <p>{card.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="strategy-section how-section" id="how-it-works">
+        <p className="small-kicker">How it works</p>
+        <h2>Identify. Understand. Apply.</h2>
+        <div className="step-grid">
+          <article>
+            <span>Step 1</span>
+            <h3>Identify</h3>
+            <p>See the hook pattern in play.</p>
+          </article>
+          <article>
+            <span>Step 2</span>
+            <h3>Understand</h3>
+            <p>Learn why that route works, where it wins, and how it shapes attention.</p>
+          </article>
+          <article>
+            <span>Step 3</span>
+            <h3>Apply</h3>
+            <p>Use that logic to choose stronger creative directions and plan what to make next.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="strategy-section split audience-section">
+        <div>
+          <p className="small-kicker">Who it is for</p>
+          <h2>Built for the teams shaping better starts</h2>
+        </div>
+        <p>
+          Hook Atlas is designed for creative strategists, marketers, sales teams, creators, editors, and production
+          partners who need a clearer way to understand first-seconds storytelling and improve it with more confidence.
+        </p>
+      </section>
+
+      <section className="strategy-section future-section">
+        <p className="small-kicker">Future vision</p>
+        <h2>Built as a system now. Designed to get smarter over time.</h2>
+        <p>
+          Today, Hook Atlas brings structure to first-seconds strategy through taxonomy, examples, and planning logic.
+          Over time, it can evolve into a more intelligent recommendation layer, helping teams connect signals, patterns,
+          and creative routes with greater speed and precision.
+        </p>
+      </section>
+
+      <section className="final-cta-section">
+        <h2>The question is not just what worked. It is what to make next.</h2>
+        <p>Hook Atlas helps teams answer that with more clarity, more consistency, and a stronger system for the first seconds.</p>
+        <button className="pill-cta" type="button" onClick={onExplore}>
+          Start Exploring <ArrowDown size={15} />
+        </button>
+      </section>
+    </section>
   );
 }
 
@@ -2991,8 +3143,9 @@ function Footer() {
         <div className="brand-mark">
           <span>ha</span>
         </div>
-        <strong>The Hook Atlas</strong>
-        <p>Short-form hook patterns for sharper first frames.</p>
+        <strong>Hook Atlas</strong>
+        <p>The First-Seconds Creative System.</p>
+        <p>Turn first-seconds intelligence into creative action.</p>
         <small>Left/right navigate · ESC close</small>
       </div>
     </footer>
