@@ -2523,13 +2523,19 @@ function AdBuilder({
       .filter((hook) => !production || hook.productionTier === production)
       .sort((a, b) => b.effectiveness - a.effectiveness || a.displayName.localeCompare(b.displayName));
   }, [funnel, intent, production]);
+  const evidenceByHook = useMemo(() => {
+    return hooks.reduce<Record<string, HookEvidenceExample[]>>((store, hook) => {
+      store[hook.id] = getHookEvidenceExamples(hook.id, validationDecisions);
+      return store;
+    }, {});
+  }, [validationDecisions]);
 
   useEffect(() => {
     if (filtered.length && !filtered.some((hook) => hook.id === selectedId)) setSelectedId(filtered[0].id);
   }, [filtered, selectedId]);
 
   const selectedHook = filtered.find((hook) => hook.id === selectedId) ?? filtered[0] ?? null;
-  const selectedEvidence = selectedHook ? getHookEvidenceExamples(selectedHook.id, validationDecisions) : [];
+  const selectedEvidence = selectedHook ? evidenceByHook[selectedHook.id] ?? [] : [];
 
   function exportBrief() {
     if (!selectedHook) return;
@@ -2605,39 +2611,48 @@ function AdBuilder({
             </div>
           )}
           <div className="builder-list">
-            {filtered.map((hook) => (
-              <div key={hook.id} className="builder-result-block">
-                <button
-                  className={classNames("builder-item", hook.id === selectedHook?.id && "active")}
-                  type="button"
-                  onClick={() => setSelectedId(hook.id)}
-                >
-                  <Poster hook={hook} compact />
-                  <div>
-                    <span style={{ color: intentColor(hook.intent) }}>
-                      {hook.intent} · {hook.categoryLabel}
-                    </span>
-                    <strong>{hook.name}</strong>
-                    <p>{hook.example}</p>
-                    <small>
-                      {(hook.effectiveness * 2).toFixed(1)}/10 · {hook.difficulty} · {hook.productionTier}
-                    </small>
-                  </div>
-                </button>
-                {hook.id === selectedHook?.id && (
-                  <div className="mobile-brief">
-                    <BuilderBrief
-                      evidence={selectedEvidence}
-                      hook={selectedHook}
-                      intent={intent}
-                      funnel={funnel}
-                      production={production}
-                      onOpenHook={onOpenHook}
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
+            {filtered.map((hook) => {
+              const hookEvidence = evidenceByHook[hook.id] ?? [];
+              const heroEvidence = hookEvidence[0];
+              const linkedLabel = `${hookEvidence.length} linked ${hookEvidence.length === 1 ? "source" : "sources"}`;
+              return (
+                <div key={hook.id} className="builder-result-block">
+                  <button
+                    className={classNames("builder-item", hook.id === selectedHook?.id && "active", heroEvidence && "has-evidence")}
+                    type="button"
+                    onClick={() => setSelectedId(hook.id)}
+                  >
+                    <div className="builder-thumb">
+                      <Poster hook={hook} evidence={heroEvidence} compact />
+                      {heroEvidence && <span>{linkedLabel}</span>}
+                    </div>
+                    <div>
+                      <span style={{ color: intentColor(hook.intent) }}>
+                        {hook.intent} · {hook.categoryLabel}
+                      </span>
+                      <strong>{hook.name}</strong>
+                      <p>{heroEvidence?.firstThree.attentionMechanic ?? hook.example}</p>
+                      <small>
+                        {(hook.effectiveness * 2).toFixed(1)}/10 · {hook.difficulty} · {hook.productionTier}
+                        {heroEvidence ? ` · ${linkedLabel}` : " · no source yet"}
+                      </small>
+                    </div>
+                  </button>
+                  {hook.id === selectedHook?.id && (
+                    <div className="mobile-brief">
+                      <BuilderBrief
+                        evidence={selectedEvidence}
+                        hook={selectedHook}
+                        intent={intent}
+                        funnel={funnel}
+                        production={production}
+                        onOpenHook={onOpenHook}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {!filtered.length && (
               <EmptyState
                 title="No opening here"
