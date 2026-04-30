@@ -640,22 +640,232 @@ button {
   text-transform: none;
 }
 
+.atlas-inspiration-section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 26px 16px 10px;
+}
+
+.atlas-section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+
+.atlas-section-head h2 {
+  max-width: 720px;
+  margin: 4px 0 8px;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(2rem, 3.9vw, 4rem);
+  font-weight: 400;
+  line-height: 0.98;
+}
+
+.atlas-section-head p:not(.small-kicker) {
+  max-width: 640px;
+  margin: 0;
+  color: #686157;
+  line-height: 1.5;
+}
+
+.atlas-section-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.atlas-section-stats span,
+.atlas-section-stats button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 253, 246, 0.78);
+  color: #5d574e;
+  font-size: 0.78rem;
+  font-weight: 820;
+}
+
+.atlas-section-stats strong {
+  color: var(--black);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.86rem;
+}
+
+.atlas-section-stats button {
+  background: var(--black);
+  color: white;
+  cursor: pointer;
+}
+
+.coverage-map {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 18px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 246, 0.74);
+}
+
+.coverage-map > div {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.coverage-map > div > span {
+  color: #9b968b;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  line-height: 2.2;
+  text-transform: uppercase;
+}
+
+.coverage-map > div > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.coverage-map em {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid color-mix(in srgb, var(--coverage-color), var(--line) 72%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--coverage-color), white 88%);
+  color: #38332b;
+  font-size: 0.74rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.coverage-map em.empty {
+  opacity: 0.46;
+}
+
+.coverage-map strong {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+}
+
+.atlas-inspiration-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.atlas-inspiration-tile {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  background: var(--black);
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  content-visibility: auto;
+  contain-intrinsic-size: 210px 373px;
+}
+
+.atlas-inspiration-tile::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 58%;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.76));
+  pointer-events: none;
+}
+
+.atlas-inspiration-tile.is-validated {
+  box-shadow: inset 0 0 0 2px rgba(255, 239, 70, 0.78);
+}
+
+.atlas-inspiration-tile .mini-poster video,
+.atlas-inspiration-tile .mini-poster img {
+  background: #090907;
+  object-fit: contain;
+}
+
+.atlas-inspiration-tile .mini-poster span {
+  display: none;
+}
+
+.atlas-inspiration-copy {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  z-index: 2;
+  display: grid;
+  gap: 5px;
+}
+
+.atlas-inspiration-copy span {
+  justify-self: start;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: var(--yellow);
+  color: var(--black);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.atlas-inspiration-tile:not(.is-validated) .atlas-inspiration-copy span {
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.atlas-inspiration-copy strong {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 0.88rem;
+  line-height: 1.08;
+}
+
+.atlas-inspiration-copy em {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 760;
+}
+
 .masonry-grid {
   max-width: 1180px;
   margin: 0 auto;
   padding: 24px 16px 72px;
-  columns: 2 172px;
-  column-gap: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
 }
 
 .hook-card {
   position: relative;
   display: block;
   width: 100%;
-  min-height: 232px;
-  margin: 0 0 14px;
+  min-height: 330px;
+  margin: 0;
   overflow: hidden;
-  break-inside: avoid;
   border: 1px solid rgba(17, 17, 15, 0.08);
   border-radius: 8px;
   background: var(--black);
@@ -666,11 +876,11 @@ button {
 }
 
 .hook-card:nth-child(3n) {
-  min-height: 294px;
+  min-height: 330px;
 }
 
 .hook-card:nth-child(4n) {
-  min-height: 260px;
+  min-height: 330px;
 }
 
 .hook-card.has-evidence {
@@ -3072,19 +3282,56 @@ footer > button {
     max-width: none;
   }
 
+  .atlas-inspiration-section {
+    padding: 22px 12px 8px;
+  }
+
+  .atlas-section-head {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 12px;
+  }
+
+  .atlas-section-head h2 {
+    font-size: clamp(2rem, 10vw, 2.8rem);
+  }
+
+  .atlas-section-stats {
+    justify-content: flex-start;
+  }
+
+  .coverage-map > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .coverage-map > div > span {
+    line-height: 1.2;
+  }
+
+  .atlas-inspiration-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .atlas-inspiration-tile {
+    min-height: 0;
+  }
+
   .masonry-grid {
-    max-width: 390px;
-    padding-top: 18px;
-    padding-right: 12px;
-    padding-bottom: 60px;
-    padding-left: 12px;
-    columns: 1;
-    column-gap: 8px;
+    max-width: 100%;
+    padding: 18px 12px 60px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .hook-card {
-    min-height: 300px;
-    margin-bottom: 16px;
+    min-height: 255px;
+  }
+
+  .hook-card:nth-child(3n),
+  .hook-card:nth-child(4n) {
+    min-height: 255px;
   }
 
   .hook-card.has-evidence {

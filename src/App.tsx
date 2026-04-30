@@ -101,6 +101,14 @@ interface HookEvidenceExample {
   status: "validated" | "suggested";
 }
 
+interface AtlasInspirationItem {
+  video: InspirationVideo;
+  decision?: ValidationDecision;
+  effective: ReturnType<typeof getEffectiveVideoState>;
+  hook?: Hook;
+  statusLabel: "validated" | "suggested" | "inbox" | "unassigned";
+}
+
 const patternOrder: HookPattern[] = ["Interrupt", "Intrigue", "Clarify", "Reward"];
 const categoryOrder = Object.keys(categoryMeta) as HookCategory[];
 const funnelOptions: Funnel[] = ["TOF", "MOF", "BOF"];
@@ -184,18 +192,36 @@ function AutoplayVideo({ className, poster, src }: { className?: string; poster?
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
+    let visible = true;
 
     const play = () => {
-      if (video.paused) {
+      if (visible && video.paused) {
         void video.play().catch(() => undefined);
       }
     };
 
-    play();
+    const observer =
+      typeof IntersectionObserver === "undefined"
+        ? undefined
+        : new IntersectionObserver(
+            ([entry]) => {
+              visible = entry?.isIntersecting ?? true;
+              if (visible) {
+                play();
+              } else {
+                video.pause();
+              }
+            },
+            { rootMargin: "220px 0px", threshold: 0.05 },
+          );
+
+    observer?.observe(video);
+    if (!observer) play();
     video.addEventListener("loadeddata", play);
     video.addEventListener("canplay", play);
 
     return () => {
+      observer?.disconnect();
       video.removeEventListener("loadeddata", play);
       video.removeEventListener("canplay", play);
     };
@@ -211,7 +237,7 @@ function AutoplayVideo({ className, poster, src }: { className?: string; poster?
       muted
       loop
       playsInline
-      preload="auto"
+      preload="metadata"
       aria-hidden="true"
     />
   );
@@ -957,6 +983,7 @@ function App() {
           }}
           onOpenHook={openHook}
           onExplore={() => document.getElementById("collection")?.scrollIntoView({ behavior: "smooth" })}
+          onFeed={() => setView("inspiration")}
         />
       )}
 
@@ -1082,12 +1109,14 @@ function AtlasGallery({
   onClearSearch,
   onOpenHook,
   onExplore,
+  onFeed,
 }: {
   validationDecisions: DecisionStore;
   query: string;
   onClearSearch: () => void;
   onOpenHook: (id: string) => void;
   onExplore: () => void;
+  onFeed: () => void;
 }) {
   const [pattern, setPattern] = useState<PatternFilter>("All");
   const [category, setCategory] = useState<CategoryFilter>("All");
@@ -1103,6 +1132,37 @@ function AtlasGallery({
     (sum, examples) => sum + examples.filter((item) => item.status === "validated").length,
     0,
   );
+  const servedInspiration = useMemo<AtlasInspirationItem[]>(() => {
+    const statusRank: Record<AtlasInspirationItem["statusLabel"], number> = {
+      validated: 0,
+      suggested: 1,
+      inbox: 2,
+      unassigned: 3,
+    };
+    return inspirationVideos
+      .flatMap((video) => {
+        const decision = validationDecisions[video.id];
+        if (decision?.status === "rejected") return [];
+        const effective = getEffectiveVideoState(video, decision);
+        const hook = effective.assignedHookId ? hooks.find((item) => item.id === effective.assignedHookId) : undefined;
+        const statusLabel: AtlasInspirationItem["statusLabel"] =
+          decision?.status === "validated" ? "validated" : hook ? "suggested" : effective.status === "unassigned" ? "unassigned" : "inbox";
+        return [{ video, decision, effective, hook, statusLabel }];
+      })
+      .sort((a, b) => {
+        return statusRank[a.statusLabel] - statusRank[b.statusLabel] || a.video.id.localeCompare(b.video.id);
+      });
+  }, [validationDecisions]);
+  const surfacedValidatedCount = servedInspiration.filter((item) => item.statusLabel === "validated").length;
+  const surfacedRoutedCount = servedInspiration.filter((item) => item.hook).length;
+  const categoryCoverage = categoryOrder.map((category) => ({
+    category,
+    count: servedInspiration.filter((item) => item.hook?.category === category).length,
+  }));
+  const patternCoverage = patternOrder.map((item) => ({
+    pattern: item,
+    count: servedInspiration.filter((video) => video.hook?.pattern === item).length,
+  }));
 
   const filteredHooks = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -1220,11 +1280,22 @@ function AtlasGallery({
         </section>
 
         {filteredHooks.length > 0 ? (
-          <section className="masonry-grid" aria-label="Hook cards">
-            {filteredHooks.map((hook) => (
-              <HookCard key={hook.id} evidence={evidenceByHook[hook.id] ?? []} hook={hook} onOpen={() => onOpenHook(hook.id)} />
-            ))}
-          </section>
+          <>
+            <AtlasInspirationSection
+              categoryCoverage={categoryCoverage}
+              items={servedInspiration}
+              onOpenFeed={onFeed}
+              onOpenHook={onOpenHook}
+              patternCoverage={patternCoverage}
+              routedCount={surfacedRoutedCount}
+              validatedCount={surfacedValidatedCount}
+            />
+            <section className="masonry-grid" aria-label="Hook cards">
+              {filteredHooks.map((hook) => (
+                <HookCard key={hook.id} evidence={evidenceByHook[hook.id] ?? []} hook={hook} onOpen={() => onOpenHook(hook.id)} />
+              ))}
+            </section>
+          </>
         ) : (
           <EmptyState
             title="No hooks match"
@@ -1432,6 +1503,106 @@ function EmptyState({
         </button>
       )}
     </div>
+  );
+}
+
+function AtlasInspirationSection({
+  categoryCoverage,
+  items,
+  onOpenFeed,
+  onOpenHook,
+  patternCoverage,
+  routedCount,
+  validatedCount,
+}: {
+  categoryCoverage: Array<{ category: HookCategory; count: number }>;
+  items: AtlasInspirationItem[];
+  onOpenFeed: () => void;
+  onOpenHook: (id: string) => void;
+  patternCoverage: Array<{ pattern: HookPattern; count: number }>;
+  routedCount: number;
+  validatedCount: number;
+}) {
+  return (
+    <section className="atlas-inspiration-section" aria-label="Served inspiration videos">
+      <div className="atlas-section-head">
+        <div>
+          <p className="small-kicker">Served inspiration</p>
+          <h2>Every creative gets a surface.</h2>
+          <p>
+            Validated clips open their hook route. Suggested and unrouted clips stay visible here so they can be reviewed
+            instead of disappearing inside the queue.
+          </p>
+        </div>
+        <div className="atlas-section-stats" aria-label="Inspiration coverage summary">
+          <span>
+            <strong>{items.length}</strong>
+            served videos
+          </span>
+          <span>
+            <strong>{validatedCount}</strong>
+            validated
+          </span>
+          <span>
+            <strong>{routedCount}</strong>
+            routed
+          </span>
+          <button type="button" onClick={onOpenFeed}>
+            Review queue
+          </button>
+        </div>
+      </div>
+
+      <div className="coverage-map" aria-label="Hook coverage by taxonomy">
+        <div>
+          <span>Patterns</span>
+          <div>
+            {patternCoverage.map(({ pattern, count }) => (
+              <em key={pattern} style={{ "--coverage-color": patternMeta[pattern].color } as React.CSSProperties}>
+                {pattern} <strong>{count}</strong>
+              </em>
+            ))}
+          </div>
+        </div>
+        <div>
+          <span>Categories</span>
+          <div>
+            {categoryCoverage.map(({ category, count }) => (
+              <em
+                key={category}
+                className={count === 0 ? "empty" : undefined}
+                style={{ "--coverage-color": categoryMeta[category].color } as React.CSSProperties}
+              >
+                {categoryMeta[category].label} <strong>{count}</strong>
+              </em>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="atlas-inspiration-grid">
+        {items.map((item) => {
+          const hook = item.hook;
+          const statusCopy = item.statusLabel === "validated" ? "validated" : item.statusLabel === "suggested" ? "suggested" : "needs route";
+          return (
+            <button
+              key={item.video.id}
+              className={classNames("atlas-inspiration-tile", `is-${item.statusLabel}`)}
+              type="button"
+              onClick={() => (hook ? onOpenHook(hook.id) : onOpenFeed())}
+              aria-label={hook ? `Open ${hook.displayName} for ${item.video.title}` : `Review ${item.video.title}`}
+            >
+              <MiniPoster video={item.video} />
+              <div className="atlas-inspiration-copy">
+                <span>{statusCopy}</span>
+                <strong>{item.video.title}</strong>
+                <em>{hook ? `${hook.displayName} · ${hook.pattern}` : "Unrouted opening beat"}</em>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
