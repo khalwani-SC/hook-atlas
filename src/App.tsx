@@ -174,6 +174,49 @@ function resolveAssetUrl(url?: string) {
   return `${base}${url.replace(/^\/+/, "")}`;
 }
 
+function AutoplayVideo({ className, poster, src }: { className?: string; poster?: string; src?: string }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !src) return undefined;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+
+    const play = () => {
+      if (video.paused) {
+        void video.play().catch(() => undefined);
+      }
+    };
+
+    play();
+    video.addEventListener("loadeddata", play);
+    video.addEventListener("canplay", play);
+
+    return () => {
+      video.removeEventListener("loadeddata", play);
+      video.removeEventListener("canplay", play);
+    };
+  }, [src]);
+
+  return (
+    <video
+      ref={videoRef}
+      className={className}
+      src={src}
+      poster={poster}
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="auto"
+      aria-hidden="true"
+    />
+  );
+}
+
 function isValidationStatus(value: unknown): value is ValidationStatus {
   return value === "inbox" || value === "validated" || value === "rejected";
 }
@@ -1438,16 +1481,10 @@ function Poster({ hook, compact = false, evidence }: { hook: Hook; compact?: boo
         <img className="poster-video" src={resolvedMediaUrl} alt="" loading="lazy" decoding="async" aria-hidden="true" />
       )}
       {mediaUrl && !isGif && (
-        <video
+        <AutoplayVideo
           className="poster-video"
           src={resolvedMediaUrl}
           poster={resolvedThumbnailUrl}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          aria-hidden="true"
         />
       )}
       <div className="poster-noise" />
@@ -1930,15 +1967,9 @@ function MiniPoster({ video }: { video: InspirationVideo }) {
     <div className={classNames("mini-poster", video.videoUrl && "has-media")} style={style}>
       {video.videoUrl && isGif && <img src={resolvedVideoUrl} alt="" loading="lazy" decoding="async" aria-hidden="true" />}
       {video.videoUrl && !isGif && (
-        <video
+        <AutoplayVideo
           src={resolvedVideoUrl}
           poster={resolvedThumbnailUrl}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          aria-hidden="true"
         />
       )}
       {!video.videoUrl && (
