@@ -302,69 +302,83 @@ button {
 }
 
 .system-home {
+  --home-max: 1120px;
+  --home-pad: max(20px, calc((100vw - var(--home-max)) / 2));
   display: grid;
   gap: 0;
   border-top: 1px solid var(--line);
+  background: rgba(248, 245, 234, 0.58);
 }
 
 .intro-band,
 .strategy-section,
 .final-cta-section {
-  padding: clamp(34px, 6vw, 72px) 20px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: clamp(44px, 7vw, 82px) var(--home-pad);
   border-bottom: 1px solid var(--line);
 }
 
 .intro-band {
+  padding-top: clamp(38px, 6vw, 70px);
+  padding-bottom: clamp(38px, 6vw, 70px);
   background: #fffdf6;
 }
 
-.intro-band p,
-.strategy-section,
-.final-cta-section {
-  max-width: 1180px;
-  margin: 0 auto;
-}
-
 .intro-band p {
+  max-width: 860px;
+  margin: 0;
   color: #4e483f;
   font-family: "Instrument Serif", Georgia, serif;
-  font-size: clamp(2rem, 5vw, 4rem);
-  line-height: 0.98;
+  font-size: clamp(1.95rem, 3.8vw, 3.35rem);
+  line-height: 1.04;
+  text-wrap: balance;
 }
 
 .strategy-section {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
   gap: 22px;
 }
 
 .strategy-section.split {
-  grid-template-columns: minmax(240px, 0.88fr) minmax(320px, 1.12fr);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .strategy-section h2,
 .final-cta-section h2 {
-  max-width: 760px;
+  max-width: 820px;
   margin: 6px 0 0;
   font-family: "Instrument Serif", Georgia, serif;
-  font-size: clamp(2.4rem, 6.2vw, 5.3rem);
+  font-size: clamp(2.35rem, 4.9vw, 4.7rem);
   font-weight: 400;
-  line-height: 0.94;
+  line-height: 0.96;
   letter-spacing: 0;
+  text-wrap: balance;
 }
 
 .strategy-section p,
 .final-cta-section p {
-  max-width: 760px;
+  max-width: 720px;
   margin: 0;
-  color: #5e574d;
-  font-size: clamp(1rem, 1.6vw, 1.16rem);
-  line-height: 1.62;
+  color: #5d574e;
+  font-size: clamp(1rem, 1.35vw, 1.12rem);
+  line-height: 1.64;
+}
+
+.strategy-section > .small-kicker {
+  max-width: none;
+  margin-bottom: -2px;
+  color: #9b968b;
+  line-height: 1.2;
 }
 
 .strategy-copy {
   display: grid;
   gap: 16px;
+  max-width: 720px;
 }
 
 .strategy-copy strong {
@@ -376,7 +390,35 @@ button {
 }
 
 .tension-section h2 {
-  max-width: 900px;
+  max-width: 940px;
+}
+
+.strategy-section > .section-title {
+  display: grid;
+  grid-template-columns: minmax(0, 820px) auto;
+  width: 100%;
+  max-width: var(--home-max);
+  align-items: end;
+  gap: 18px 28px;
+}
+
+.strategy-section > .section-title > div {
+  min-width: 0;
+}
+
+.strategy-section > .section-title > span {
+  justify-self: end;
+  margin-bottom: 6px;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 253, 246, 0.72);
+  color: #8c8579;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .value-grid,
@@ -386,16 +428,19 @@ button {
 }
 
 .value-grid {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+  max-width: var(--home-max);
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
 }
 
 .value-card,
 .step-grid article {
   min-width: 0;
-  padding: 18px;
+  padding: 18px 18px 20px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(255, 253, 246, 0.86);
+  background: rgba(255, 253, 246, 0.9);
+  box-shadow: 0 12px 34px rgba(30, 24, 12, 0.04);
 }
 
 .value-card > span,
@@ -416,7 +461,7 @@ button {
 .value-card h3,
 .step-grid h3 {
   margin: 0 0 10px;
-  font-size: clamp(1.05rem, 1.8vw, 1.28rem);
+  font-size: clamp(1.05rem, 1.35vw, 1.24rem);
   line-height: 1.14;
 }
 
@@ -427,6 +472,8 @@ button {
 }
 
 .step-grid {
+  width: 100%;
+  max-width: var(--home-max);
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -2682,14 +2729,6 @@ button {
 }
 
 @media (max-width: 1120px) {
-  .strategy-section.split {
-    grid-template-columns: 1fr;
-  }
-
-  .value-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .step-grid {
     grid-template-columns: 1fr;
   }
@@ -2910,17 +2949,43 @@ footer > button {
   .intro-band,
   .strategy-section,
   .final-cta-section {
-    padding: 34px 16px;
+    padding: 34px 18px;
   }
 
   .intro-band p {
-    font-size: clamp(1.85rem, 9vw, 3rem);
-    line-height: 1;
+    font-size: clamp(1.58rem, 6.4vw, 2.12rem);
+    line-height: 1.08;
   }
 
   .strategy-section h2,
   .final-cta-section h2 {
-    font-size: clamp(2.25rem, 11vw, 3.45rem);
+    font-size: clamp(1.95rem, 8.2vw, 2.75rem);
+    line-height: 1.02;
+  }
+
+  .strategy-section p,
+  .final-cta-section p {
+    font-size: 1rem;
+    line-height: 1.58;
+  }
+
+  .strategy-section > .section-title {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+    justify-content: start;
+  }
+
+  .strategy-section > .section-title > span {
+    justify-self: start;
+    margin-top: 4px;
+    margin-bottom: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #8c8579;
+    font-size: 0.78rem;
   }
 
   .value-grid {
