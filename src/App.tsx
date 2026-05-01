@@ -109,6 +109,12 @@ interface AtlasInspirationItem {
   statusLabel: "validated" | "suggested" | "inbox" | "unassigned";
 }
 
+interface BuilderEvidenceOption {
+  evidence: HookEvidenceExample;
+  sourceHook: Hook;
+  relation: "This hook" | "Same category" | "Same intent" | "Same pattern";
+}
+
 const patternOrder: HookPattern[] = ["Interrupt", "Intrigue", "Clarify", "Reward"];
 const categoryOrder = Object.keys(categoryMeta) as HookCategory[];
 const funnelOptions: Funnel[] = ["TOF", "MOF", "BOF"];
@@ -817,6 +823,46 @@ function getHookEvidenceExamples(hookId: string, decisions: DecisionStore): Hook
     const bScore = b.decision ? scoreAverage(b.decision.scores) : b.mediaMatch?.fitConfidence === "strong" ? 8 : 6;
     return bScore - aScore;
   });
+}
+
+function getBuilderEvidenceOptions(hook: Hook, evidenceByHook: Record<string, HookEvidenceExample[]>): BuilderEvidenceOption[] {
+  const options: BuilderEvidenceOption[] = [];
+  const seen = new Set<string>();
+  const relationRank: Record<BuilderEvidenceOption["relation"], number> = {
+    "This hook": 0,
+    "Same category": 1,
+    "Same intent": 2,
+    "Same pattern": 3,
+  };
+
+  function add(sourceHook: Hook, relation: BuilderEvidenceOption["relation"]) {
+    (evidenceByHook[sourceHook.id] ?? []).forEach((evidence) => {
+      if (seen.has(evidence.video.id)) return;
+      seen.add(evidence.video.id);
+      options.push({ evidence, sourceHook, relation });
+    });
+  }
+
+  add(hook, "This hook");
+  hooks.filter((item) => item.id !== hook.id && item.category === hook.category).forEach((item) => add(item, "Same category"));
+  hooks
+    .filter((item) => item.id !== hook.id && item.category !== hook.category && item.intent === hook.intent)
+    .forEach((item) => add(item, "Same intent"));
+  hooks
+    .filter((item) => item.id !== hook.id && item.category !== hook.category && item.intent !== hook.intent && item.pattern === hook.pattern)
+    .forEach((item) => add(item, "Same pattern"));
+
+  return options
+    .sort((a, b) => {
+      const relationScore = relationRank[a.relation] - relationRank[b.relation];
+      if (relationScore) return relationScore;
+      const statusScore = Number(b.evidence.status === "validated") - Number(a.evidence.status === "validated");
+      if (statusScore) return statusScore;
+      const aScore = a.evidence.decision ? scoreAverage(a.evidence.decision.scores) : a.evidence.mediaMatch?.fitConfidence === "strong" ? 8 : 6;
+      const bScore = b.evidence.decision ? scoreAverage(b.evidence.decision.scores) : b.evidence.mediaMatch?.fitConfidence === "strong" ? 8 : 6;
+      return bScore - aScore;
+    })
+    .slice(0, 14);
 }
 
 function exportValidationDecisions(decisions: DecisionStore) {
@@ -1696,6 +1742,7 @@ function HookModal({
 }) {
   const [copied, setCopied] = useState<string | null>(null);
   const [verticalIndex, setVerticalIndex] = useState(0);
+  const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
   const backdropRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLElement | null>(null);
   const index = visibleHooks.findIndex((item) => item.id === hook.id);
@@ -1704,11 +1751,13 @@ function HookModal({
   const vertical = hook.verticalExamples[verticalIndex] ?? hook.verticalExamples[0];
   const related = hook.related.map((id) => hooks.find((item) => item.id === id)).filter(Boolean) as Hook[];
   const evidence = getHookEvidenceExamples(hook.id, validationDecisions);
-  const heroEvidence = evidence[0];
-  const clips = evidence.slice(0, 6);
+  const validatedEvidence = evidence.filter((item) => item.status === "validated");
+  const clips = (validatedEvidence.length ? validatedEvidence : evidence).slice(0, 10);
+  const activeEvidence = evidence.find((item) => item.video.id === selectedClipId) ?? evidence[0];
 
   useEffect(() => {
     setVerticalIndex(0);
+    setSelectedClipId(null);
     if (backdropRef.current) backdropRef.current.scrollTop = 0;
     if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [hook.id]);
@@ -1745,12 +1794,12 @@ function HookModal({
     <div ref={backdropRef} className="modal-backdrop" role="dialog" aria-modal="true" aria-label={`${hook.displayName} details`}>
       <div className="hook-modal">
         <div className="modal-media">
-          <Poster evidence={heroEvidence} hook={hook} />
-          {heroEvidence && (
+          <Poster evidence={activeEvidence} hook={hook} />
+          {activeEvidence && (
             <div className="modal-evidence-caption">
-              <span>{heroEvidence.status === "validated" ? "validated creative" : "suggested creative"}</span>
-              <strong>{heroEvidence.video.title}</strong>
-              <p>{heroEvidence.firstThree.attentionMechanic}</p>
+              <span>{activeEvidence.status === "validated" ? "validated creative" : "suggested creative"}</span>
+              <strong>{activeEvidence.video.title}</strong>
+              <p>{activeEvidence.firstThree.attentionMechanic}</p>
             </div>
           )}
           <div className="player-controls">
@@ -1761,9 +1810,9 @@ function HookModal({
             <button
               type="button"
               aria-label="Open media"
-              disabled={!heroEvidence?.video.videoUrl}
+              disabled={!activeEvidence?.video.videoUrl}
               onClick={() => {
-                const mediaUrl = resolveAssetUrl(heroEvidence?.video.videoUrl);
+                const mediaUrl = resolveAssetUrl(activeEvidence?.video.videoUrl);
                 if (mediaUrl) window.open(mediaUrl, "_blank", "noopener,noreferrer");
               }}
             >
@@ -1903,14 +1952,19 @@ function HookModal({
             <div className="clip-row">
               {clips.length ? (
                 clips.map((clip) => (
-                  <div className="clip-card" key={clip.video.id}>
+                  <button
+                    className={classNames("clip-card", clip.video.id === activeEvidence?.video.id && "active")}
+                    key={clip.video.id}
+                    type="button"
+                    onClick={() => setSelectedClipId(clip.video.id)}
+                  >
                     <MiniPoster video={clip.video} />
                     <div>
                       <span>{clip.status}</span>
                       <strong>{clip.video.title}</strong>
                       <p>{clip.firstThree.attentionMechanic}</p>
                     </div>
-                  </div>
+                  </button>
                 ))
               ) : (
                 <p className="lead-copy">No validated example yet. Route a real ad here once the first frame clearly matches the hook.</p>
@@ -2717,6 +2771,7 @@ function AdBuilder({
   const [funnel, setFunnel] = useState<Funnel | null>(null);
   const [production, setProduction] = useState<ProductionTier | null>(null);
   const [selectedId, setSelectedId] = useState(hooks[0].id);
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     return hooks
@@ -2738,10 +2793,26 @@ function AdBuilder({
 
   const selectedHook = filtered.find((hook) => hook.id === selectedId) ?? filtered[0] ?? null;
   const selectedEvidence = selectedHook ? evidenceByHook[selectedHook.id] ?? [] : [];
+  const selectedEvidenceOptions = useMemo(
+    () => (selectedHook ? getBuilderEvidenceOptions(selectedHook, evidenceByHook) : []),
+    [evidenceByHook, selectedHook],
+  );
+  const activeEvidence =
+    selectedEvidenceOptions.find((item) => item.evidence.video.id === selectedEvidenceId)?.evidence ?? selectedEvidenceOptions[0]?.evidence;
+
+  useEffect(() => {
+    if (!selectedEvidenceOptions.length) {
+      if (selectedEvidenceId) setSelectedEvidenceId(null);
+      return;
+    }
+    if (!selectedEvidenceOptions.some((item) => item.evidence.video.id === selectedEvidenceId)) {
+      setSelectedEvidenceId(selectedEvidenceOptions[0].evidence.video.id);
+    }
+  }, [selectedEvidenceId, selectedEvidenceOptions]);
 
   function exportBrief() {
     if (!selectedHook) return;
-    const brief = buildBrief(selectedHook, intent, funnel, production, selectedEvidence[0]);
+    const brief = buildBrief(selectedHook, intent, funnel, production, activeEvidence);
     const blob = new Blob([brief], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -2804,10 +2875,13 @@ function AdBuilder({
             <div className="mobile-brief-summary">
               <BuilderBrief
                 evidence={selectedEvidence}
+                evidenceOptions={selectedEvidenceOptions}
+                activeEvidenceId={selectedEvidenceId}
                 hook={selectedHook}
                 intent={intent}
                 funnel={funnel}
                 production={production}
+                onSelectEvidence={setSelectedEvidenceId}
                 onOpenHook={onOpenHook}
               />
             </div>
@@ -2844,10 +2918,13 @@ function AdBuilder({
                     <div className="mobile-brief">
                       <BuilderBrief
                         evidence={selectedEvidence}
+                        evidenceOptions={selectedEvidenceOptions}
+                        activeEvidenceId={selectedEvidenceId}
                         hook={selectedHook}
                         intent={intent}
                         funnel={funnel}
                         production={production}
+                        onSelectEvidence={setSelectedEvidenceId}
                         onOpenHook={onOpenHook}
                       />
                     </div>
@@ -2874,10 +2951,13 @@ function AdBuilder({
           {selectedHook ? (
             <BuilderBrief
               evidence={selectedEvidence}
+              evidenceOptions={selectedEvidenceOptions}
+              activeEvidenceId={selectedEvidenceId}
               hook={selectedHook}
               intent={intent}
               funnel={funnel}
               production={production}
+              onSelectEvidence={setSelectedEvidenceId}
               onOpenHook={onOpenHook}
             />
           ) : (
@@ -2890,24 +2970,31 @@ function AdBuilder({
 }
 
 function BuilderBrief({
+  activeEvidenceId,
   evidence,
+  evidenceOptions,
   hook,
   intent,
   funnel,
   production,
+  onSelectEvidence,
   onOpenHook,
 }: {
+  activeEvidenceId: string | null;
   evidence: HookEvidenceExample[];
+  evidenceOptions: BuilderEvidenceOption[];
   hook: Hook;
   intent: IntentFilter;
   funnel: Funnel | null;
   production: ProductionTier | null;
+  onSelectEvidence: (id: string) => void;
   onOpenHook: (id: string) => void;
 }) {
   const [copiedScript, setCopiedScript] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [thumbnailMode, setThumbnailMode] = useState<ThumbnailMode>("Dramatic");
-  const heroEvidence = evidence[0];
+  const activeOption = evidenceOptions.find((item) => item.evidence.video.id === activeEvidenceId) ?? evidenceOptions[0];
+  const heroEvidence = activeOption?.evidence ?? evidence[0];
   const blueprint = buildBlueprint(hook, production, heroEvidence);
   const shots = buildShots(blueprint, heroEvidence);
   const scriptText = buildScriptText(hook, blueprint, heroEvidence);
@@ -2952,35 +3039,58 @@ function BuilderBrief({
       <section className="brief-card evidence-card">
         <div className="brief-section-head">
           <h4>Opening Beat Evidence</h4>
-          <span>{evidence.length ? `${evidence.length} linked examples` : "no validated example"}</span>
+          <span>{evidenceOptions.length ? `${evidenceOptions.length} examples in route` : "no validated example"}</span>
         </div>
         {heroEvidence ? (
-          <div className="evidence-brief">
-            <MiniPoster video={heroEvidence.video} />
-            <div>
-              <span>{heroEvidence.status}</span>
-              <h5>{heroEvidence.video.title}</h5>
-              <p>{heroEvidence.firstThree.attentionMechanic}</p>
-              <dl>
-                <div>
-                  <dt>First frame</dt>
-                  <dd>{heroEvidence.firstThree.firstFrame}</dd>
-                </div>
-                <div>
-                  <dt>Platform</dt>
-                  <dd>{heroEvidence.decision?.platform ?? inferPlatform(heroEvidence.video, heroEvidence.mediaMatch)}</dd>
-                </div>
-                <div>
-                  <dt>Confidence</dt>
-                  <dd>{heroEvidence.decision?.confidence ?? heroEvidence.mediaMatch?.fitConfidence ?? "suggested"}</dd>
-                </div>
-                <div>
-                  <dt>Quality</dt>
-                  <dd>{heroEvidence.decision ? `${scoreAverage(heroEvidence.decision.scores)}/10` : "not scored"}</dd>
-                </div>
-              </dl>
+          <>
+            <div className="evidence-brief">
+              <MiniPoster video={heroEvidence.video} />
+              <div>
+                <span>{activeOption ? activeOption.relation : heroEvidence.status}</span>
+                <h5>{heroEvidence.video.title}</h5>
+                <p>{heroEvidence.firstThree.attentionMechanic}</p>
+                <dl>
+                  <div>
+                    <dt>First frame</dt>
+                    <dd>{heroEvidence.firstThree.firstFrame}</dd>
+                  </div>
+                  <div>
+                    <dt>Hook route</dt>
+                    <dd>{activeOption ? activeOption.sourceHook.displayName : hook.displayName}</dd>
+                  </div>
+                  <div>
+                    <dt>Platform</dt>
+                    <dd>{heroEvidence.decision?.platform ?? inferPlatform(heroEvidence.video, heroEvidence.mediaMatch)}</dd>
+                  </div>
+                  <div>
+                    <dt>Confidence</dt>
+                    <dd>{heroEvidence.decision?.confidence ?? heroEvidence.mediaMatch?.fitConfidence ?? "suggested"}</dd>
+                  </div>
+                  <div>
+                    <dt>Quality</dt>
+                    <dd>{heroEvidence.decision ? `${scoreAverage(heroEvidence.decision.scores)}/10` : "not scored"}</dd>
+                  </div>
+                </dl>
+              </div>
             </div>
-          </div>
+            {evidenceOptions.length > 1 && (
+              <div className="builder-evidence-strip" aria-label="Choose evidence example">
+                {evidenceOptions.map((option) => (
+                  <button
+                    key={`${option.sourceHook.id}-${option.evidence.video.id}`}
+                    className={classNames(option.evidence.video.id === heroEvidence.video.id && "active")}
+                    type="button"
+                    onClick={() => onSelectEvidence(option.evidence.video.id)}
+                  >
+                    <MiniPoster video={option.evidence.video} />
+                    <span>{option.relation}</span>
+                    <strong>{option.evidence.video.title}</strong>
+                    <em>{option.sourceHook.displayName}</em>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         ) : (
           <p className="lead-copy">No validated example yet. Route a real ad here once the first frame clearly matches the hook.</p>
         )}
@@ -3160,8 +3270,47 @@ const thumbnailModes: ThumbnailMode[] = ["Raw", "Dramatic", "Viral"];
 
 function buildBlueprint(hook: Hook, production: ProductionTier | null, evidence?: HookEvidenceExample): BuilderBlueprint {
   const tier = production ?? hook.productionTier;
-  const camera = hook.category === "Text" ? "screen first" : hook.category === "Visual" ? "phone camera" : "front selfie";
-  const energy = hook.intent === "Urgency" ? "high" : hook.intent === "Story" ? "warm" : "low";
+  const evidenceText = [
+    evidence?.video.title,
+    evidence?.firstThree.firstFrame,
+    evidence?.firstThree.firstTextOrAudio,
+    evidence?.firstThree.firstMovement,
+    evidence?.firstThree.attentionMechanic,
+    evidence?.mediaMatch?.visualTraits.join(" "),
+    evidence?.mediaMatch?.scriptSignals.join(" "),
+    evidence?.video.tags.join(" "),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const hasSignal = (...terms: string[]) => terms.some((term) => evidenceText.includes(term));
+  const camera = hasSignal("pov", "first person", "point of view")
+    ? "POV phone camera"
+    : hasSignal("screen", "app", "pdp", "checkout", "website")
+      ? "screen/product capture"
+      : hasSignal("creator", "face", "talking", "selfie")
+        ? "front selfie"
+        : hook.category === "Text"
+          ? "screen first"
+          : hook.category === "Visual"
+            ? "phone camera"
+            : "front selfie";
+  const framing = hasSignal("extreme close", "close-up", "close up", "face", "texture")
+    ? "close-up detail"
+    : hasSignal("full-body", "full body", "wide", "room")
+      ? "medium wide"
+      : hook.intent === "Authority"
+        ? "medium close"
+        : "close up";
+  const energy = hasSignal("sale", "offer", "urgent", "countdown", "order")
+    ? "high"
+    : hasSignal("slow", "silent", "minimal", "calm")
+      ? "low"
+      : hook.intent === "Urgency"
+        ? "high"
+        : hook.intent === "Story"
+          ? "warm"
+          : "low";
   const motion =
     evidence?.firstThree.firstMovement && !evidence.firstThree.firstMovement.includes("manual review")
       ? evidence.firstThree.firstMovement
@@ -3169,7 +3318,9 @@ function buildBlueprint(hook: Hook, production: ProductionTier | null, evidence?
         ? "quick move"
         : "static";
   const expression =
-    hook.intent === "Authority"
+    hasSignal("reaction", "omg", "shock", "surprise")
+      ? "visible reaction"
+      : hook.intent === "Authority"
       ? "calm certain"
       : hook.intent === "Story"
         ? "confessional"
@@ -3179,11 +3330,21 @@ function buildBlueprint(hook: Hook, production: ProductionTier | null, evidence?
 
   return {
     camera,
-    framing: hook.intent === "Authority" ? "medium close" : "close up",
+    framing,
     energy,
-    lighting: tier === "Studio" ? "soft key" : tier === "AI" ? "generated glow" : "dim",
+    lighting: hasSignal("studio", "product", "white background", "soft light")
+      ? "clean studio light"
+      : hasSignal("night", "dim", "bedroom")
+        ? "dim native light"
+        : tier === "Studio"
+          ? "soft key"
+          : tier === "AI"
+            ? "generated glow"
+            : "native ambient",
     environment: evidence?.decision?.productVertical
       ? evidence.decision.productVertical.split("/")[0].trim().toLowerCase()
+      : evidence?.mediaMatch?.productVertical
+        ? evidence.mediaMatch.productVertical.split("/")[0].trim().toLowerCase()
       : tier === "Studio"
         ? "studio desk"
         : tier === "AI"
@@ -3191,9 +3352,14 @@ function buildBlueprint(hook: Hook, production: ProductionTier | null, evidence?
           : "bedroom",
     motion,
     expression,
-    textOverlay: hook.id === "curiosity-gap" ? "One thing 99% miss:" : `${hook.displayName.replace(/^The\s+/i, "")}:`,
+    textOverlay:
+      evidence?.firstThree.firstTextOrAudio && !evidence.firstThree.firstTextOrAudio.includes("manual review")
+        ? evidence.firstThree.firstTextOrAudio
+        : hook.id === "curiosity-gap"
+          ? "One thing 99% miss:"
+          : `${hook.displayName.replace(/^The\s+/i, "")}:`,
     tone: hook.intent === "Authority" ? "assured precise" : hook.intent === "Urgency" ? "direct urgent" : "hushed conspiratorial",
-    pacing: hook.intent === "Urgency" ? "fast cuts hard stop" : "slow build fast payoff",
+    pacing: hasSignal("quick", "fast", "cut", "whip", "jump") ? "quick cuts with early proof" : hook.intent === "Urgency" ? "fast cuts hard stop" : "slow build fast payoff",
     ctaStyle: hook.intent === "Education" ? "save-for-later" : hook.intent === "Authority" ? "proof-led invite" : "soft tease - 'more tomorrow'",
   };
 }
