@@ -41,6 +41,7 @@ import type {
 } from "./types";
 
 type ViewMode = "atlas" | "inspiration" | "builder";
+type OpenHookHandler = (id: string, targetView?: ViewMode, evidenceVideoId?: string | null) => void;
 type SortMode = "featured" | "validated" | "rated" | "easy" | "advanced";
 type PatternFilter = HookPattern | "All";
 type CategoryFilter = HookCategory | "All";
@@ -159,17 +160,24 @@ function hashForView(view: ViewMode) {
   return "";
 }
 
-function writeUrl(view: ViewMode, hookId?: string | null) {
+function writeUrl(view: ViewMode, hookId?: string | null, evidenceVideoId?: string | null) {
   const params = new URLSearchParams(window.location.search);
   params.set("view", view);
   if (hookId) params.set("hook", hookId);
   else params.delete("hook");
+  if (hookId && evidenceVideoId) params.set("clip", evidenceVideoId);
+  else params.delete("clip");
   window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}${hashForView(view)}`);
 }
 
 function getHookFromUrl() {
   const params = new URLSearchParams(window.location.search);
   return params.get("hook");
+}
+
+function getClipFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("clip");
 }
 
 function classNames(...values: Array<string | false | undefined>) {
@@ -883,6 +891,7 @@ function exportValidationDecisions(decisions: DecisionStore) {
 function App() {
   const [view, setViewState] = useState<ViewMode>(readViewFromUrl);
   const [selectedHookId, setSelectedHookId] = useState<string | null>(getHookFromUrl);
+  const [selectedEvidenceVideoId, setSelectedEvidenceVideoId] = useState<string | null>(getClipFromUrl);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -963,17 +972,20 @@ function App() {
     setViewState(next);
     setMenuOpen(false);
     setSelectedHookId(null);
+    setSelectedEvidenceVideoId(null);
     writeUrl(next, null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function openHook(id: string, targetView = view) {
+  const openHook: OpenHookHandler = (id, targetView = view, evidenceVideoId = null) => {
     setSelectedHookId(id);
-    writeUrl(targetView, id);
-  }
+    setSelectedEvidenceVideoId(evidenceVideoId);
+    writeUrl(targetView, id, evidenceVideoId);
+  };
 
   function closeHook() {
     setSelectedHookId(null);
+    setSelectedEvidenceVideoId(null);
     writeUrl(view, null);
   }
 
@@ -982,6 +994,7 @@ function App() {
     setMenuOpen(false);
     setViewState("atlas");
     setSelectedHookId(random.id);
+    setSelectedEvidenceVideoId(null);
     writeUrl("atlas", random.id);
   }
 
@@ -989,6 +1002,7 @@ function App() {
     function onPopState() {
       setViewState(readViewFromUrl());
       setSelectedHookId(getHookFromUrl());
+      setSelectedEvidenceVideoId(getClipFromUrl());
     }
     window.addEventListener("popstate", onPopState);
     window.addEventListener("hashchange", onPopState);
@@ -1041,9 +1055,9 @@ function App() {
           onClearDecision={clearValidationDecision}
           onExportDecisions={() => exportValidationDecisions(validationDecisions)}
           onImportDecisions={importValidationDecisions}
-          onOpenHook={(id) => {
+          onOpenHook={(id, _targetView, evidenceVideoId) => {
             setViewState("atlas");
-            openHook(id, "atlas");
+            openHook(id, "atlas", evidenceVideoId);
           }}
           onSaveDecision={saveValidationDecision}
         />
@@ -1058,8 +1072,13 @@ function App() {
           hook={selectedHook}
           validationDecisions={validationDecisions}
           visibleHooks={hooks}
+          initialEvidenceVideoId={selectedEvidenceVideoId}
           onClose={closeHook}
           onOpenHook={openHook}
+          onSelectEvidence={(videoId) => {
+            setSelectedEvidenceVideoId(videoId);
+            writeUrl(view, selectedHook.id, videoId);
+          }}
         />
       )}
     </div>
@@ -1160,7 +1179,7 @@ function AtlasGallery({
   validationDecisions: DecisionStore;
   query: string;
   onClearSearch: () => void;
-  onOpenHook: (id: string) => void;
+  onOpenHook: OpenHookHandler;
   onExplore: () => void;
   onFeed: () => void;
 }) {
@@ -1596,7 +1615,7 @@ function AtlasInspirationSection({
   isFiltered: boolean;
   items: AtlasInspirationItem[];
   onOpenFeed: () => void;
-  onOpenHook: (id: string) => void;
+  onOpenHook: OpenHookHandler;
   patternCoverage: Array<{ pattern: HookPattern; count: number }>;
   routedCount: number;
   totalCount: number;
@@ -1686,7 +1705,7 @@ function AtlasInspirationSection({
                 key={item.video.id}
                 className={classNames("atlas-inspiration-tile", `is-${item.statusLabel}`)}
                 type="button"
-                onClick={() => (hook ? onOpenHook(hook.id) : onOpenFeed())}
+                onClick={() => (hook ? onOpenHook(hook.id, "atlas", item.video.id) : onOpenFeed())}
                 aria-label={hook ? `Open ${hook.displayName} for ${item.video.title}` : `Review ${item.video.title}`}
               >
                 <MiniPoster video={item.video} />
@@ -1785,14 +1804,18 @@ function HookModal({
   hook,
   validationDecisions,
   visibleHooks,
+  initialEvidenceVideoId,
   onClose,
   onOpenHook,
+  onSelectEvidence,
 }: {
   hook: Hook;
   validationDecisions: DecisionStore;
   visibleHooks: Hook[];
+  initialEvidenceVideoId: string | null;
   onClose: () => void;
-  onOpenHook: (id: string) => void;
+  onOpenHook: OpenHookHandler;
+  onSelectEvidence: (videoId: string | null) => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
   const [verticalIndex, setVerticalIndex] = useState(0);
@@ -1806,15 +1829,23 @@ function HookModal({
   const related = hook.related.map((id) => hooks.find((item) => item.id === id)).filter(Boolean) as Hook[];
   const evidence = getHookEvidenceExamples(hook.id, validationDecisions);
   const validatedEvidence = evidence.filter((item) => item.status === "validated");
-  const clips = (validatedEvidence.length ? validatedEvidence : evidence).slice(0, 10);
-  const activeEvidence = evidence.find((item) => item.video.id === selectedClipId) ?? evidence[0];
+  const selectedEvidence = evidence.find((item) => item.video.id === selectedClipId);
+  const activeEvidence = selectedEvidence ?? evidence[0];
+  const baseClips = (validatedEvidence.length ? validatedEvidence : evidence).slice(0, 10);
+  const clips =
+    activeEvidence && !baseClips.some((item) => item.video.id === activeEvidence.video.id)
+      ? [activeEvidence, ...baseClips].slice(0, 10)
+      : baseClips;
 
   useEffect(() => {
     setVerticalIndex(0);
-    setSelectedClipId(null);
     if (backdropRef.current) backdropRef.current.scrollTop = 0;
     if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [hook.id]);
+
+  useEffect(() => {
+    setSelectedClipId(initialEvidenceVideoId);
+  }, [hook.id, initialEvidenceVideoId]);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -2000,8 +2031,8 @@ function HookModal({
 
           <section className="detail-panel">
             <div className="section-title">
-              <h4>Validated examples</h4>
-              <span>{clips.length || "No"} validated</span>
+              <h4>Examples in this route</h4>
+              <span>{clips.length || "No"} examples</span>
             </div>
             <div className="clip-row">
               {clips.length ? (
@@ -2010,7 +2041,10 @@ function HookModal({
                     className={classNames("clip-card", clip.video.id === activeEvidence?.video.id && "active")}
                     key={clip.video.id}
                     type="button"
-                    onClick={() => setSelectedClipId(clip.video.id)}
+                    onClick={() => {
+                      setSelectedClipId(clip.video.id);
+                      onSelectEvidence(clip.video.id);
+                    }}
                   >
                     <MiniPoster video={clip.video} />
                     <div>
@@ -2079,7 +2113,7 @@ function InspirationFeed({
   onClearDecision: (videoId: string) => void;
   onExportDecisions: () => void;
   onImportDecisions: (decisions: DecisionStore) => void;
-  onOpenHook: (id: string) => void;
+  onOpenHook: OpenHookHandler;
   onSaveDecision: (decision: ValidationDecision) => void;
 }) {
   const [filter, setFilter] = useState<FeedFilter>("all");
@@ -2278,7 +2312,7 @@ function VideoPreview({
   onClose: () => void;
   onExportDecisions: () => void;
   onNextVideo: () => void;
-  onOpenHook: (id: string) => void;
+  onOpenHook: OpenHookHandler;
   onPreviousVideo: () => void;
   onSaveDecision: (decision: ValidationDecision) => void;
   queueIndex: number;
@@ -2775,7 +2809,7 @@ function VideoPreview({
           </div>
 
           {selectedHook ? (
-            <button className="validation-open-hook" type="button" onClick={() => onOpenHook(selectedHook.id)}>
+            <button className="validation-open-hook" type="button" onClick={() => onOpenHook(selectedHook.id, "atlas", video.id)}>
               Open {selectedHook.displayName}
             </button>
           ) : (
@@ -2819,7 +2853,7 @@ function HookStrategyPlanner({
 }: {
   validationDecisions: DecisionStore;
   onBack: () => void;
-  onOpenHook: (id: string) => void;
+  onOpenHook: OpenHookHandler;
 }) {
   const [intent, setIntent] = useState<IntentFilter>("All");
   const [funnel, setFunnel] = useState<Funnel | null>(null);
@@ -3042,7 +3076,7 @@ function BuilderBrief({
   funnel: Funnel | null;
   production: ProductionTier | null;
   onSelectEvidence: (id: string) => void;
-  onOpenHook: (id: string) => void;
+  onOpenHook: OpenHookHandler;
 }) {
   const [copiedScript, setCopiedScript] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
@@ -3265,7 +3299,7 @@ function BuilderBrief({
       </section>
 
       <div className="brief-actions">
-        <button type="button" onClick={() => onOpenHook(hook.id)}>
+        <button type="button" onClick={() => onOpenHook(hook.id, undefined, heroEvidence?.video.id)}>
           Open full hook
         </button>
         <button type="button" onClick={exportThisBrief}>
