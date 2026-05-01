@@ -597,6 +597,30 @@ button {
   border-radius: 999px;
 }
 
+.filter-taxonomy-note {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 1180px;
+  margin: 10px auto 0;
+  gap: 8px;
+}
+
+.filter-taxonomy-note span {
+  min-height: 30px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 253, 246, 0.76);
+  color: #726c62;
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
+.filter-taxonomy-note strong {
+  color: var(--black);
+  font-weight: 900;
+}
+
 .results-bar {
   display: flex;
   align-items: center;
@@ -704,6 +728,37 @@ button {
   cursor: pointer;
 }
 
+.taxonomy-key {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.taxonomy-key div {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 246, 0.72);
+}
+
+.taxonomy-key span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--black);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.taxonomy-key p {
+  margin: 0;
+  color: #716a60;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
 .coverage-map {
   display: grid;
   gap: 9px;
@@ -764,6 +819,17 @@ button {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 10px;
+}
+
+.atlas-empty-message {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 246, 0.72);
+  color: #686157;
+  line-height: 1.45;
 }
 
 .atlas-inspiration-tile {
@@ -3389,6 +3455,10 @@ footer > button {
 
   .atlas-section-stats {
     justify-content: flex-start;
+  }
+
+  .taxonomy-key {
+    grid-template-columns: 1fr;
   }
 
   .coverage-map > div {

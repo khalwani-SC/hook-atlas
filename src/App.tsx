@@ -1199,16 +1199,6 @@ function AtlasGallery({
         return statusRank[a.statusLabel] - statusRank[b.statusLabel] || a.video.id.localeCompare(b.video.id);
       });
   }, [validationDecisions]);
-  const surfacedValidatedCount = servedInspiration.filter((item) => item.statusLabel === "validated").length;
-  const surfacedRoutedCount = servedInspiration.filter((item) => item.hook).length;
-  const categoryCoverage = categoryOrder.map((category) => ({
-    category,
-    count: servedInspiration.filter((item) => item.hook?.category === category).length,
-  }));
-  const patternCoverage = patternOrder.map((item) => ({
-    pattern: item,
-    count: servedInspiration.filter((video) => video.hook?.pattern === item).length,
-  }));
 
   const filteredHooks = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -1239,6 +1229,31 @@ function AtlasGallery({
         return sortHooks(a, b, sort);
       });
   }, [category, evidenceByHook, pattern, query, sort]);
+  const visibleHookIds = useMemo(() => new Set(filteredHooks.map((hook) => hook.id)), [filteredHooks]);
+  const normalizedQuery = query.trim().toLowerCase();
+  const filterIsActive = pattern !== "All" || category !== "All" || Boolean(normalizedQuery);
+  const displayedInspiration = useMemo(() => {
+    if (!filterIsActive) return servedInspiration;
+    return servedInspiration.filter((item) => item.hook && visibleHookIds.has(item.hook.id));
+  }, [filterIsActive, servedInspiration, visibleHookIds]);
+  const surfacedValidatedCount = displayedInspiration.filter((item) => item.statusLabel === "validated").length;
+  const surfacedRoutedCount = displayedInspiration.filter((item) => item.hook).length;
+  const categoryCoverage = categoryOrder.map((category) => ({
+    category,
+    count: displayedInspiration.filter((item) => item.hook?.category === category).length,
+  }));
+  const patternCoverage = patternOrder.map((item) => ({
+    pattern: item,
+    count: displayedInspiration.filter((video) => video.hook?.pattern === item).length,
+  }));
+  const filterLabel =
+    [
+      pattern !== "All" ? pattern : undefined,
+      category !== "All" ? categoryMeta[category].label : undefined,
+      normalizedQuery ? `search: "${query.trim()}"` : undefined,
+    ]
+      .filter(Boolean)
+      .join(" · ") || "All routes";
 
   return (
     <>
@@ -1307,6 +1322,15 @@ function AtlasGallery({
             ))}
           </FilterRow>
 
+          <div className="filter-taxonomy-note" aria-label="Taxonomy color key">
+            <span>
+              <strong>Pattern color</strong> = first-seconds attention job
+            </span>
+            <span>
+              <strong>Category dot</strong> = creative device family
+            </span>
+          </div>
+
           <div className="results-bar">
             <span>
               {filteredHooks.length} hooks · {validatedExampleCount} validated sources on {validatedHookCount} hooks
@@ -1329,11 +1353,14 @@ function AtlasGallery({
           <>
             <AtlasInspirationSection
               categoryCoverage={categoryCoverage}
-              items={servedInspiration}
+              filterLabel={filterLabel}
+              isFiltered={filterIsActive}
+              items={displayedInspiration}
               onOpenFeed={onFeed}
               onOpenHook={onOpenHook}
               patternCoverage={patternCoverage}
               routedCount={surfacedRoutedCount}
+              totalCount={servedInspiration.length}
               validatedCount={surfacedValidatedCount}
             />
             <section className="masonry-grid" aria-label="Hook cards">
@@ -1554,36 +1581,43 @@ function EmptyState({
 
 function AtlasInspirationSection({
   categoryCoverage,
+  filterLabel,
+  isFiltered,
   items,
   onOpenFeed,
   onOpenHook,
   patternCoverage,
   routedCount,
+  totalCount,
   validatedCount,
 }: {
   categoryCoverage: Array<{ category: HookCategory; count: number }>;
+  filterLabel: string;
+  isFiltered: boolean;
   items: AtlasInspirationItem[];
   onOpenFeed: () => void;
   onOpenHook: (id: string) => void;
   patternCoverage: Array<{ pattern: HookPattern; count: number }>;
   routedCount: number;
+  totalCount: number;
   validatedCount: number;
 }) {
   return (
     <section className="atlas-inspiration-section" aria-label="Served inspiration videos">
       <div className="atlas-section-head">
         <div>
-          <p className="small-kicker">Served inspiration</p>
-          <h2>Every creative gets a surface.</h2>
+          <p className="small-kicker">{isFiltered ? "Filtered inspiration" : "Served inspiration"}</p>
+          <h2>{isFiltered ? "Evidence follows your filters." : "Every creative gets a surface."}</h2>
           <p>
-            Validated clips open their hook route. Suggested and unrouted clips stay visible here so they can be reviewed
-            instead of disappearing inside the queue.
+            {isFiltered
+              ? `Showing clips routed to ${filterLabel}. Change a pattern or category and the video evidence narrows to the matching hook routes.`
+              : "Validated clips open their hook route. Suggested and unrouted clips stay visible here so they can be reviewed instead of disappearing inside the queue."}
           </p>
         </div>
         <div className="atlas-section-stats" aria-label="Inspiration coverage summary">
           <span>
             <strong>{items.length}</strong>
-            served videos
+            {isFiltered ? `of ${totalCount} videos` : "served videos"}
           </span>
           <span>
             <strong>{validatedCount}</strong>
@@ -1599,12 +1633,27 @@ function AtlasInspirationSection({
         </div>
       </div>
 
+      <div className="taxonomy-key" aria-label="Taxonomy color key">
+        <div>
+          <span>Pattern color</span>
+          <p>The attention job in the first seconds: interrupt, intrigue, clarify, or reward.</p>
+        </div>
+        <div>
+          <span>Category dot</span>
+          <p>The creative device doing the job: visual, text, proof, emotion, education, and related hook families.</p>
+        </div>
+      </div>
+
       <div className="coverage-map" aria-label="Hook coverage by taxonomy">
         <div>
           <span>Patterns</span>
           <div>
             {patternCoverage.map(({ pattern, count }) => (
-              <em key={pattern} style={{ "--coverage-color": patternMeta[pattern].color } as React.CSSProperties}>
+              <em
+                key={pattern}
+                title={patternMeta[pattern].description}
+                style={{ "--coverage-color": patternMeta[pattern].color } as React.CSSProperties}
+              >
                 {pattern} <strong>{count}</strong>
               </em>
             ))}
@@ -1617,6 +1666,7 @@ function AtlasInspirationSection({
               <em
                 key={category}
                 className={count === 0 ? "empty" : undefined}
+                title={`${categoryMeta[category].label}: category dots mark the creative device family.`}
                 style={{ "--coverage-color": categoryMeta[category].color } as React.CSSProperties}
               >
                 {categoryMeta[category].label} <strong>{count}</strong>
@@ -1627,26 +1677,30 @@ function AtlasInspirationSection({
       </div>
 
       <div className="atlas-inspiration-grid">
-        {items.map((item) => {
-          const hook = item.hook;
-          const statusCopy = item.statusLabel === "validated" ? "validated" : item.statusLabel === "suggested" ? "suggested" : "needs route";
-          return (
-            <button
-              key={item.video.id}
-              className={classNames("atlas-inspiration-tile", `is-${item.statusLabel}`)}
-              type="button"
-              onClick={() => (hook ? onOpenHook(hook.id) : onOpenFeed())}
-              aria-label={hook ? `Open ${hook.displayName} for ${item.video.title}` : `Review ${item.video.title}`}
-            >
-              <MiniPoster video={item.video} />
-              <div className="atlas-inspiration-copy">
-                <span>{statusCopy}</span>
-                <strong>{item.video.title}</strong>
-                <em>{hook ? `${hook.displayName} · ${hook.pattern}` : "Unrouted opening beat"}</em>
-              </div>
-            </button>
-          );
-        })}
+        {items.length ? (
+          items.map((item) => {
+            const hook = item.hook;
+            const statusCopy = item.statusLabel === "validated" ? "validated" : item.statusLabel === "suggested" ? "suggested" : "needs route";
+            return (
+              <button
+                key={item.video.id}
+                className={classNames("atlas-inspiration-tile", `is-${item.statusLabel}`)}
+                type="button"
+                onClick={() => (hook ? onOpenHook(hook.id) : onOpenFeed())}
+                aria-label={hook ? `Open ${hook.displayName} for ${item.video.title}` : `Review ${item.video.title}`}
+              >
+                <MiniPoster video={item.video} />
+                <div className="atlas-inspiration-copy">
+                  <span>{statusCopy}</span>
+                  <strong>{item.video.title}</strong>
+                  <em>{hook ? `${hook.displayName} · ${hook.pattern}` : "Unrouted opening beat"}</em>
+                </div>
+              </button>
+            );
+          })
+        ) : (
+          <p className="atlas-empty-message">No video evidence is routed to this filter yet. That is a useful taxonomy gap to review.</p>
+        )}
       </div>
     </section>
   );
