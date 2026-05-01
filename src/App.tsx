@@ -1050,7 +1050,7 @@ function App() {
       )}
 
       {view === "builder" && (
-        <AdBuilder validationDecisions={validationDecisions} onBack={() => setView("atlas")} onOpenHook={openHook} />
+        <HookStrategyPlanner validationDecisions={validationDecisions} onBack={() => setView("atlas")} onOpenHook={openHook} />
       )}
 
       {selectedHook && (
@@ -1139,7 +1139,7 @@ function TopNav({
                 <Lightbulb size={16} /> Review queue
               </button>
               <button type="button" role="menuitem" onClick={onBuilder}>
-                <Clipboard size={16} /> Ad Builder
+                <Clipboard size={16} /> Strategy Planner
               </button>
             </div>
           )}
@@ -2021,7 +2021,7 @@ function HookModal({
                   </button>
                 ))
               ) : (
-                <p className="lead-copy">No validated example yet. Route a real ad here once the first frame clearly matches the hook.</p>
+                <p className="lead-copy">No validated example yet. Route a real opening here once the first frame clearly matches the hook.</p>
               )}
             </div>
           </section>
@@ -2153,7 +2153,7 @@ function InspirationFeed({
           Review queue:
           <span>validate the opening beat.</span>
         </h1>
-        <p>Review the first frame, first line, and first movement. Then route the ad to the hook it actually earns.</p>
+        <p>Review the first frame, first line, and first movement. Then route the opening to the hook it actually earns.</p>
         <div className="queue-stats" aria-label="Review queue progress">
           <div>
             <strong>{validatedCount}</strong>
@@ -2812,7 +2812,7 @@ function getFirstThreeSecondAnalysis(match: (typeof mediaHookMatrix)[number]): F
   };
 }
 
-function AdBuilder({
+function HookStrategyPlanner({
   validationDecisions,
   onBack,
   onOpenHook,
@@ -2871,7 +2871,7 @@ function AdBuilder({
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${selectedHook.id}-ad-brief.md`;
+    anchor.download = `${selectedHook.id}-hook-strategy-brief.md`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -2883,8 +2883,8 @@ function AdBuilder({
           <span>ha</span>
         </div>
         <div>
-          <h1>Ad Builder</h1>
-          <p>Pick a hook. Build the opening. Turn intent into execution.</p>
+          <h1>Hook Strategy Planner</h1>
+          <p>Choose an intent, pick a hook route, and turn first-seconds logic into a practical opening plan.</p>
         </div>
         <button type="button" onClick={onBack}>
           <ArrowLeft size={16} /> Back to Atlas
@@ -2917,12 +2917,12 @@ function AdBuilder({
               </FilterButton>
             ))}
           </BuilderGroup>
-          <p>Intent shapes the energy, script spine, camera logic, and CTA tone.</p>
+          <p>Intent shapes the energy, script spine, camera logic, opening evidence, and testing direction.</p>
         </aside>
 
         <section className="builder-hooks">
           <div className="section-title sticky-title">
-            <h2>Hooks</h2>
+            <h2>Hook routes</h2>
             <span>{filtered.length} · top-rated first</span>
           </div>
           {selectedHook && (
@@ -2988,7 +2988,7 @@ function AdBuilder({
             })}
             {!filtered.length && (
               <EmptyState
-                title="No opening here"
+                title="No route here"
                 body="Clear one filter or add a hook that actually fits this intent, funnel, and production reality."
               />
             )}
@@ -2997,9 +2997,9 @@ function AdBuilder({
 
         <aside className="brief-panel">
           <div className="brief-top">
-            <h2>Ad Builder</h2>
+            <h2>Hook Strategy Brief</h2>
             <button className="dark-button" type="button" onClick={exportBrief} disabled={!selectedHook}>
-              Export Ad Brief <Download size={16} />
+              Export Strategy Brief <Download size={16} />
             </button>
           </div>
           {selectedHook ? (
@@ -3015,7 +3015,7 @@ function AdBuilder({
               onOpenHook={onOpenHook}
             />
           ) : (
-            <EmptyState title="No brief selected" body="Choose a filter mix that has a real hook behind it." />
+            <EmptyState title="No route selected" body="Choose a filter mix that has a real hook strategy behind it." />
           )}
         </aside>
       </div>
@@ -3072,7 +3072,7 @@ function BuilderBrief({
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${hook.id}-ad-brief.md`;
+    anchor.download = `${hook.id}-hook-strategy-brief.md`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -3146,7 +3146,7 @@ function BuilderBrief({
             )}
           </>
         ) : (
-          <p className="lead-copy">No validated example yet. Route a real ad here once the first frame clearly matches the hook.</p>
+          <p className="lead-copy">No validated example yet. Route a real opening here once the first frame clearly matches the hook.</p>
         )}
       </section>
 
@@ -3269,7 +3269,7 @@ function BuilderBrief({
           Open full hook
         </button>
         <button type="button" onClick={exportThisBrief}>
-          Export brief
+          Export strategy brief
         </button>
       </div>
     </div>
@@ -3491,7 +3491,7 @@ function buildThumbnailPrompt(hook: Hook, blueprint: BuilderBlueprint, mode: Thu
         ? "high contrast viral creator thumbnail, bold readable text, expressive face"
         : "slightly dramatic low-key creator thumbnail, tense expression, warm shadows";
   const reference = evidence ? ` Inspired by the validated source "${evidence.video.title}" with this opening mechanic: ${evidence.firstThree.attentionMechanic}.` : "";
-  return `${style}. ${hook.name} for a vertical short-form ad. ${blueprint.camera}, ${blueprint.framing}, ${blueprint.environment}, ${blueprint.lighting} lighting. Overlay text: "${blueprint.textOverlay}".${reference}`;
+  return `${style}. ${hook.name} as a vertical first-seconds opening. ${blueprint.camera}, ${blueprint.framing}, ${blueprint.environment}, ${blueprint.lighting} lighting. Overlay text: "${blueprint.textOverlay}".${reference}`;
 }
 
 function buildTestingPlan(hook: Hook, evidence?: HookEvidenceExample) {
@@ -3517,7 +3517,7 @@ function buildBrief(
   const scriptText = buildScriptText(hook, blueprint, evidence);
   const thumbnailPrompt = buildThumbnailPrompt(hook, blueprint, "Dramatic", evidence);
   const testingPlan = buildTestingPlan(hook, evidence);
-  return `# ${hook.name} Ad Brief
+  return `# ${hook.name} Hook Strategy Brief
 
 Intent: ${intent}
 Funnel: ${funnel ?? hook.funnelFit.join(", ")}
@@ -3541,7 +3541,7 @@ ${evidence ? `- First frame: ${evidence.firstThree.firstFrame}
 - Expression: ${blueprint.expression}
 - Sample overlay: ${blueprint.textOverlay}
 
-## Script
+## Opening Script
 ${scriptText}
 
 ## Why It Pulls Attention
