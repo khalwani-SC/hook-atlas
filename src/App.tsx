@@ -1829,7 +1829,17 @@ function HookModal({
   const related = hook.related.map((id) => hooks.find((item) => item.id === id)).filter(Boolean) as Hook[];
   const evidence = getHookEvidenceExamples(hook.id, validationDecisions);
   const validatedEvidence = evidence.filter((item) => item.status === "validated");
-  const selectedEvidence = evidence.find((item) => item.video.id === selectedClipId);
+  const selectedVideoFallback = selectedClipId ? inspirationVideos.find((video) => video.id === selectedClipId) : undefined;
+  const selectedFallbackEvidence = selectedVideoFallback
+    ? ({
+        video: selectedVideoFallback,
+        decision: validationDecisions[selectedVideoFallback.id],
+        mediaMatch: getMediaMatch(selectedVideoFallback),
+        firstThree: validationDecisions[selectedVideoFallback.id]?.firstThree ?? getSuggestedEvidence(selectedVideoFallback),
+        status: validationDecisions[selectedVideoFallback.id]?.status === "validated" ? "validated" : "suggested",
+      } satisfies HookEvidenceExample)
+    : undefined;
+  const selectedEvidence = evidence.find((item) => item.video.id === selectedClipId) ?? selectedFallbackEvidence;
   const activeEvidence = selectedEvidence ?? evidence[0];
   const baseClips = (validatedEvidence.length ? validatedEvidence : evidence).slice(0, 10);
   const clips =
