@@ -14,6 +14,7 @@ import {
   Lightbulb,
   Menu,
   Pause,
+  Play,
   Search,
   Sparkles,
   Video,
@@ -196,7 +197,7 @@ function resolveAssetUrl(url?: string) {
   return `${base}${url.replace(/^\/+/, "")}`;
 }
 
-function AutoplayVideo({ className, poster, src }: { className?: string; poster?: string; src?: string }) {
+function AutoplayVideo({ className, paused = false, poster, src }: { className?: string; paused?: boolean; poster?: string; src?: string }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -209,7 +210,7 @@ function AutoplayVideo({ className, poster, src }: { className?: string; poster?
     let visible = true;
 
     const play = () => {
-      if (visible && video.paused) {
+      if (visible && !paused && video.paused) {
         void video.play().catch(() => undefined);
       }
     };
@@ -239,7 +240,14 @@ function AutoplayVideo({ className, poster, src }: { className?: string; poster?
       video.removeEventListener("loadeddata", play);
       video.removeEventListener("canplay", play);
     };
-  }, [src]);
+  }, [paused, src]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (paused) video.pause();
+    else void video.play().catch(() => undefined);
+  }, [paused, src]);
 
   return (
     <video
@@ -1687,7 +1695,7 @@ function HookCard({ hook, evidence, onOpen }: { hook: Hook; evidence: HookEviden
   );
 }
 
-function Poster({ hook, compact = false, evidence }: { hook: Hook; compact?: boolean; evidence?: HookEvidenceExample }) {
+function Poster({ hook, compact = false, evidence, paused = false }: { hook: Hook; compact?: boolean; evidence?: HookEvidenceExample; paused?: boolean }) {
   const style = {
     "--poster-a": hook.palette[0],
     "--poster-b": hook.palette[1],
@@ -1706,6 +1714,7 @@ function Poster({ hook, compact = false, evidence }: { hook: Hook; compact?: boo
       {mediaUrl && !isGif && (
         <AutoplayVideo
           className="poster-video"
+          paused={paused}
           src={resolvedMediaUrl}
           poster={resolvedThumbnailUrl}
         />
@@ -1751,6 +1760,7 @@ function HookModal({
   onSelectEvidence: (videoId: string | null) => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
+  const [mediaPaused, setMediaPaused] = useState(false);
   const [verticalIndex, setVerticalIndex] = useState(0);
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
   const backdropRef = useRef<HTMLDivElement | null>(null);
@@ -1779,12 +1789,19 @@ function HookModal({
     activeEvidence && !baseClips.some((item) => item.video.id === activeEvidence.video.id)
       ? [activeEvidence, ...baseClips].slice(0, 10)
       : baseClips;
+  const activeMediaUrl = activeEvidence?.video.videoUrl ?? hook.videoUrl;
+  const activeMediaIsVideo = Boolean(activeMediaUrl && !isGifMedia(activeMediaUrl));
 
   useEffect(() => {
     setVerticalIndex(0);
+    setMediaPaused(false);
     if (backdropRef.current) backdropRef.current.scrollTop = 0;
     if (contentRef.current) contentRef.current.scrollTop = 0;
   }, [hook.id]);
+
+  useEffect(() => {
+    setMediaPaused(false);
+  }, [activeEvidence?.video.id]);
 
   useEffect(() => {
     setSelectedClipId(initialEvidenceVideoId);
@@ -1822,7 +1839,7 @@ function HookModal({
     <div ref={backdropRef} className="modal-backdrop" role="dialog" aria-modal="true" aria-label={`${hook.displayName} details`}>
       <div className="hook-modal">
         <div className="modal-media">
-          <Poster evidence={activeEvidence} hook={hook} />
+          <Poster evidence={activeEvidence} hook={hook} paused={mediaPaused} />
           {activeEvidence && (
             <div className="modal-evidence-caption">
               <span>{activeEvidence.status === "validated" ? "validated creative" : "suggested creative"}</span>
@@ -1831,8 +1848,13 @@ function HookModal({
             </div>
           )}
           <div className="player-controls">
-            <button type="button" aria-label="Pause video">
-              <Pause size={16} />
+            <button
+              type="button"
+              aria-label={activeMediaIsVideo ? (mediaPaused ? "Play video" : "Pause video") : "GIF preview cannot be paused"}
+              disabled={!activeMediaIsVideo}
+              onClick={() => setMediaPaused((paused) => !paused)}
+            >
+              {mediaPaused ? <Play size={16} /> : <Pause size={16} />}
             </button>
             <span />
             <button
