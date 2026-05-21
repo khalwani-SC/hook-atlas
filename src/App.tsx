@@ -1446,6 +1446,34 @@ const systemStats = [
   },
 ];
 
+const hookMeterStages = [
+  {
+    time: "0.0s",
+    body: "The first visual trigger reaches the eye.",
+    active: true,
+  },
+  {
+    time: "0.8s",
+    body: "The brain asks: relevant or irrelevant?",
+    active: true,
+  },
+  {
+    time: "1.7s",
+    body: "Judgment forms around the information received.",
+    active: true,
+  },
+  {
+    time: "3.0s",
+    body: "Attention pauses. Weak hooks start losing people here.",
+    active: false,
+  },
+  {
+    time: "+6s",
+    body: "By the CTA, only earned attention is still working.",
+    active: false,
+  },
+];
+
 function HomepageNarrative({ onExplore }: { onExplore: () => void }) {
   return (
     <section className="system-home" id="how-it-works" aria-label="Hook Atlas system overview">
@@ -1482,6 +1510,33 @@ function HomepageNarrative({ onExplore }: { onExplore: () => void }) {
           Jump to evidence <ArrowDown size={15} />
         </button>
       </div>
+
+      <HookPowerMeter />
+    </section>
+  );
+}
+
+function HookPowerMeter() {
+  return (
+    <section className="hook-power-meter" aria-label="First-seconds hook power meter">
+      <div className="hook-meter-head">
+        <p className="small-kicker">Cognitive science</p>
+        <h2>Hooks win or lose before the CTA.</h2>
+        <p>
+          The opening beat is not decoration. It is the decision window where attention is triggered, judged, and either
+          earned or lost.
+        </p>
+      </div>
+
+      <ol className="hook-meter-track">
+        {hookMeterStages.map((stage) => (
+          <li key={stage.time} className={classNames(stage.active ? "active" : "muted")}>
+            <span aria-hidden="true" />
+            <strong>{stage.time}</strong>
+            <p>{stage.body}</p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
